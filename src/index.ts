@@ -26,37 +26,39 @@ const FORMAT_REGEX = (
  * @param str String used for formatting
  * @param params Parameters to be inserted into the format string
  */
-function format(str: string, ...params: any[]) {
+export function format(str: string, ...params: any[]) {
     // Counter used for insertion of unnumbered values
     let param_counter = 0;
 
-    return str.replace(FORMAT_REGEX,
+    str = str.replace(FORMAT_REGEX,
         (
-            $text: string,
+            $: string,
             $param_number: string | undefined,
             $fill_character: string | undefined,
             $align_direction: '^' | '>' | '<' | undefined,
             $sign: '+' | undefined,
             $pretty: '#' | undefined,
             $pad_zeroes: '0' | undefined,
-            $width: string,
-            $precision: string,
+            $width: string | undefined,
+            $precision: string | undefined,
             $type: '?' | 'o' | 'x' | 'X' | 'b' | 'e' | 'E' | undefined
         ) => {
             // Return a bracket if the regex matched an escaped bracket
-            if ($text === '{{') {
+            if ($ === '{{') {
                 return '{';
             }
-            if ($text === '}}') {
+            if ($ === '}}') {
                 return '}';
             }
             // Process parameter number; increment param_counter if not included
-            let param = $param_number === '' ? params[param_counter++] : params[Number($param_number)];
+            let param = $param_number === ''
+                ? params[param_counter++]
+                : params[+$param_number];
             if (param === undefined) {
                 throw new Error(`parameter ${$param_number || param_counter - 1} either NaN or not provided`);
             }
 
-            let param_is_number = (typeof param === 'number') || (typeof param === 'bigint');
+            let param_type = typeof param;
 
             // Process parameter type
             switch ($type) {
@@ -65,7 +67,7 @@ function format(str: string, ...params: any[]) {
                 case "X": param = param.toString(16).toUpperCase(); break;
                 case "b": param = param.toString(2); break;
                 case "e":
-                    switch (typeof param) {
+                    switch (param_type) {
                         case 'number':
                             param = param.toExponential();
                             break;
@@ -81,7 +83,7 @@ function format(str: string, ...params: any[]) {
                     }
                     break;
                 case "E":
-                    switch (typeof param) {
+                    switch (param_type) {
                         case 'number':
                             param = param.toExponential().toUpperCase();
                             break;
@@ -106,6 +108,18 @@ function format(str: string, ...params: any[]) {
                 default: param = param.toString(); break;
             };
 
+            // Compute radix-point precision on numbers
+            if (param_type == 'number' && $precision) {
+                let [pre, post] = (param as string).split(".");
+                let precision = +$precision.substring(1, $precision.length);
+                if (post.length > precision) {
+                    post = post.substring(0, precision);
+                } else while (post.length < precision) {
+                    post = post + '0';
+                }
+                param = pre + "." + post;
+            }
+
             let width: number;
             if ($width === undefined) {
                 width = 0;
@@ -114,25 +128,62 @@ function format(str: string, ...params: any[]) {
                 if (Number.isNaN(width)) throw new Error(`invalid width specifier '${$width}' (must be an integer)`);
             }
 
+            let filled = false;
 
-            if (param_is_number) {
+            if ((param_type == 'number') || (param_type == 'bigint')) {
                 // Compute parameter sign and pad with 0s if specified
                 let maybe_sign = (param as string).substring(0, 1);
                 if (maybe_sign === '-') {
                     param = (param as string).substring(1, param.length);
                 } else if ($sign === '+') {
                     maybe_sign = '+';
+                } else {
+                    maybe_sign = '';
+                }
+
+                //If the type is x or X and pretty printing enabled, add 0x
+                if ((($type === 'x') || ($type === 'X')) && ($pretty === '#')) {
+                    maybe_sign += '0x';
                 }
 
                 if ($pad_zeroes === '0') {
+                    filled = true;
                     param = (param as string).padStart(width - maybe_sign.length, "0");
                 }
 
                 param = maybe_sign + param;
             }
-
-            /* TODO */
-            return "";
+            if (!filled && width) {
+                // Compute fill/align
+                $align_direction ||= '>'
+                $fill_character ||= ' ';
+                switch ($align_direction) {
+                    case '>':
+                        while (width - param.length > 0) {
+                            param = $fill_character + param;
+                        }
+                        break;
+                    case '<':
+                        while (width - param.length > 0) {
+                            param = param + $fill_character;
+                        }
+                        break;
+                    case '^':
+                        while (width - param.length > 1) {
+                            param = $fill_character + param + $fill_character;
+                        }
+                        // Prioritise right-aligment on uneven alignment
+                        if (width - param.length == 1) {
+                            param = $fill_character + param;
+                        }
+                        break;
+                }
+            }
+            return param;
         }
     );
+    if (param_counter < params.length) {
+        throw new Error(`parameter ${param_counter} and following are unused`);
+    }
+    return str;
 }
