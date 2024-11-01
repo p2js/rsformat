@@ -1,3 +1,4 @@
+import { Writable } from 'stream';
 import { inspect } from 'util';
 
 /**
@@ -131,7 +132,7 @@ export function format(str: string, ...params: any[]) {
             let filled = false;
 
             if ((param_type == 'number') || (param_type == 'bigint')) {
-                // Compute parameter sign and pad with 0s if specified
+                // Compute parameter sign
                 let maybe_sign = (param as string).substring(0, 1);
                 if (maybe_sign === '-') {
                     param = (param as string).substring(1, param.length);
@@ -146,9 +147,12 @@ export function format(str: string, ...params: any[]) {
                     maybe_sign += '0x';
                 }
 
+                //pad with zeroes if specified  
                 if ($pad_zeroes === '0') {
                     filled = true;
-                    param = (param as string).padStart(width - maybe_sign.length, "0");
+                    while (param.length < width - maybe_sign.length) {
+                        param = '0' + param;
+                    }
                 }
 
                 param = maybe_sign + param;
@@ -187,3 +191,48 @@ export function format(str: string, ...params: any[]) {
     }
     return str;
 }
+
+export function Printer(outStream: Writable = process.stdout, errStream: Writable = process.stderr) {
+    return {
+        /**
+         * Print a format string to an output stream (usually process.stdout).
+         * 
+         * @param format_string String used for formatting
+         * @param params Parameters to be inserted into the format string
+         */
+        print: function print(format_string: string, ...params: any[]) {
+            outStream.write(format(format_string, ...params));
+        },
+        /**
+         * Print a format string to an output stream (usually process.stdout)
+         * and append a newline.
+         * 
+         * @param format_string String used for formatting
+         * @param params Parameters to be inserted into the format string
+         */
+        println: function println(format_string: string, ...params: any[]) {
+            outStream.write(format(format_string, ...params) + "\n");
+        },
+        /**
+         * Print a format string to an error stream (usually process.stderr).
+         * 
+         * @param format_string String used for formatting
+         * @param params Parameters to be inserted into the format string
+         */
+        eprint: function eprint(format_string: string, ...params: any[]) {
+            errStream.write(format(format_string, ...params));
+        },
+        /**
+         * Print a format string to an error stream (usually process.stderr)
+         * and append a newline.
+         * 
+         * @param format_string String used for formatting
+         * @param params Parameters to be inserted into the format string
+         */
+        eprintln: function eprintln(format_string: string, ...params: any[]) {
+            errStream.write(format(format_string, ...params) + "\n");
+        },
+    }
+}
+
+export const { print, println, eprint, eprintln } = Printer();
