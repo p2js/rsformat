@@ -1,5 +1,33 @@
 {
-	"dependencies": {
-		"@types/node": "^22.8.5"
-	}
+  "name": "rsformat",
+  "version": "0.1.0",
+  "description": "Formatting/printing library for JavaScript that takes after rust's string formatting ",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "README.MD"
+  ],
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "fmt",
+    "format",
+    "strings",
+    "print",
+    "println",
+    "printf",
+    "console",
+    "log"
+  ],
+  "author": "Alfio (https://github.com/p2js)",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.8.6"
+  }
 }
