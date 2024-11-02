@@ -76,7 +76,7 @@ export function format(str: string, ...params: any[]) {
                             param = param.toLocaleString('en-US', {
                                 notation: 'scientific',
                                 maximumFractionDigits: 20,
-                            });
+                            }).toLowerCase();
                             break;
                         default:
                             param = param.toString();
@@ -92,7 +92,7 @@ export function format(str: string, ...params: any[]) {
                             param = param.toLocaleString('en-US', {
                                 notation: 'scientific',
                                 maximumFractionDigits: 20
-                            }).toUpperCase();
+                            });
                             break;
                         default:
                             param = param.toString();
