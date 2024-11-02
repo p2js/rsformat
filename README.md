@@ -6,7 +6,7 @@ RSFormat is a string formatting/printing library for JavaScript. It offers an al
 
 `console.log` is an odd method: its output can be affected by functions called before/after it (such as `console.group`), or their order affected by what parameters there are. For example, when calling `console.log(string, number)`, number can come either after or inside `string` depending on the value of `string`.
 
-RSFormat provides alternative functions with standardised behaviour: its `format`, `println` and all other functions will always output in the same manner, and 
+RSFormat provides alternative functions with standardised behaviour: its `format`, `println` and all other functions will always output in the same manner, and have a standardised syntax which will only print the initial string, formatted with the parameters provided afterwards.
 
 Rust formatting also includes a lot of convenient operators for formatting text, such as padding/alignment, printing numbers in a given base, specifying decimal precision, etc.. This makes it a more ergonomic and convenient approach to printing things to the console.
 
