@@ -113,6 +113,9 @@ export function format(str: string, ...params: any[]) {
             // Compute radix-point precision on numbers
             if (param_type == 'number' && $precision) {
                 let [pre, post] = (param as string).split(".");
+                if (post === undefined) {
+                    post = "";
+                }
                 let precision = +$precision.substring(1, $precision.length);
                 if (post.length > precision) {
                     post = post.substring(0, precision);
@@ -237,3 +240,6 @@ export function Printer(outStream: Writable = process.stdout, errStream: Writabl
 }
 
 export const { print, println, eprint, eprintln } = Printer();
+
+println("{:.3}", 1.23456789);
+println("{:.3}", 1)
