@@ -9,6 +9,7 @@ import { inspect } from 'util';
  * - The - sign (unused in rust) is unsupported.
  * - Pointer format type 'p' is unsupported.
  * - Hexadecimal debug types 'x?' and 'X?' are unsupported. 
+ * - Specifying precision with * is unsupported.
  * 
  * The formatter currently matches with a regex 
  * instead of a full-blown parser for simplicity 
@@ -18,7 +19,7 @@ import { inspect } from 'util';
  * insertion points.
  */
 const FORMAT_REGEX = (
-    /\{{2}|\}{2}|\{(\d*?)(?::(?:(.?)(\^|>|<))?(\+)?(#)?(0)?(\d*)?(\.(?:\d*|\*))?(\?|o|x|X|b|e|E)?)?\}/g
+    /\{{2}|\}{2}|\{(\d*?)(?::(?:(.?)(\^|>|<))?(\+)?(#)?(0)?(\d*)?(\.\d*)?(\?|o|x|X|b|e|E)?)?\}/g
 );
 
 /**
