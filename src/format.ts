@@ -34,7 +34,7 @@ export function format(str: string, ...params: any[]) {
     str = str.replace(FORMAT_REGEX,
         (
             $: string,
-            $param_number: string | undefined,
+            $param_number: string,
             $fill_character: string | undefined,
             $align_direction: '^' | '>' | '<' | undefined,
             $sign: '+' | undefined,
@@ -52,7 +52,7 @@ export function format(str: string, ...params: any[]) {
                 return '}';
             }
             // Process parameter number; increment param_counter if not included
-            let param = $param_number === undefined
+            let param = $param_number === ''
                 ? params[param_counter++]
                 : params[+$param_number];
             if (param === undefined) {
