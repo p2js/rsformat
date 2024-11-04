@@ -1,6 +1,6 @@
 # RSFormat
 
-RSFormat is a string formatting/printing library for JavaScript. It offers an alternative to the string formatting and printing provided by `console.log`.
+RSFormat is a string formatting/printing library for JavaScript. It offers a minimal, yet powerful and flexible alternative to the string formatting and printing provided by `console.log`.
 
 ## Motivation
 
@@ -140,7 +140,7 @@ A simple benchmark setup like the one below will demonstrate that `println` is m
 
 ```js
 // benchmark.mjs
-import { println } from "rsformat-local";
+import { println } from "rsformat";
 
 const time = (fn, iter) => {
     let time = Date.now();
