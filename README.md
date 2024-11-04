@@ -12,6 +12,12 @@ Rust formatting also includes a lot of convenient operators for formatting text,
 
 ## Usage
 
+you can install rsformat using [npm](https://www.npmjs.com/package/rsformat):
+
+```
+npm install rsformat
+```
+
 ### Basic formatting and printing to console
 
 RSFormat functions are called using a format string, and any number of format arguments following it.
@@ -21,11 +27,14 @@ Any instance of `{}` in the format strings will get replaced with a value.
 You can specify what value you want in the parameters by using a number inside the insertion point.
 
 ```js
+import { format, println } from 'rsformat';      // ESM
+const { format, println } = require('rsformat'); // CommonJS
+
 let name = 'everyone';
 
 let greeting = format('Hello {}!', name); // Evaluates to the string 'Hello, everyone!'
 
-println("I have {1} apples and {0} oranges", 13, 14); // Will print "I have 14 apples and 13 oranges" to the console
+println('I have {1} apples and {0} oranges', 13, 14); // Will print 'I have 14 apples and 13 oranges' to the console
 ```
 
 ### Format Specifiers
@@ -45,17 +54,17 @@ This implementation differs from the rust one in a few ways:
 ```js
 // Debug format specifier: ?, uses util.inspect rather than toString
 
-println("{}", { a: 1 }); //prints "[object Object]"
-println("{:?}", { a: 1 }); //prints "{ a:1 }"
+println('{}', { a: 1 }); //prints '[object Object]'
+println('{:?}', { a: 1 }); //prints "{ a:1 }"
 
 // Number base specifiers: x, X, b, o - for lower/uppercase hexadecimal, binary, octal
 
-format("{} is {0:x} in hex, {0:b} in binary and {0:o} in octal", 15); // "15 is f in hex, 1111 in binary and 17 in octal"
+format('{} is {0:x} in hex, {0:b} in binary and {0:o} in octal', 15); // '15 is f in hex, 1111 in binary and 17 in octal'
 
 // Scientific notation specifiers: e, E - for lower/uppercase scientific notation
 
 let hugeNumber = 1000n;
-format("{:E}", hugeNumber); // "1E3";
+format('{:E}', hugeNumber); // '1E3';
 ```
 
 #### Padding, Alignment
@@ -65,18 +74,18 @@ Values can be aligned using any fill character (will default to a space ` `), an
 ```js
 /*
 Will print a pyramid of 'a's:
-"  a  "
-" aaa "
-"aaaaa"
+'  a  '
+' aaa '
+'aaaaa'
 */
 let pyramidLevels = ['a', 'aaa', 'aaaaa'];
 for(let value of pyramidLevels) {
-    println("{:^5}", value);
+    println('{:^5}', value);
 }
 ```
 
 ```js
-format("{:.>7}", [1,2]); // "....1,2"
+format('{:.>7}', [1,2]); // '....1,2'
 ```
 
 #### Pretty Printing
@@ -84,7 +93,7 @@ format("{:.>7}", [1,2]); // "....1,2"
 In some instances (namely debug and hexadecimal formatting), adding a `#` before the format specifier will use an alternative 'pretty' printing style. This amounts to using non-compact `util.inspect` for debug printing (spanning multiple lines), and adding 0x to hexadecimal numbers.
 
 ```js
-format("{:#X}, 255"); // "0xFF"
+format('{:#X}', 255); // '0xFF'
 ```
 
 #### Specific Number Formatting
@@ -92,18 +101,33 @@ format("{:#X}, 255"); // "0xFF"
 Specifically for `number` and `bigint` values, a 0 can be placed before the width to pad the number with 0s instead. This will account for signs and possible formatting differences.
 
 ```js
-format("{:#07x}", 15) // "0x0000F"
+format('{:#07x}', 15) // '0x0000F'
 ```
 
 Decimal precision can be specified for numbers by adding a . and specifying an integer for precision.
 
 ```js
-format("{:.3}", 1.23456789); // "1.234"
-format("{:.3}", -1);         // "-1.000"
+format('{:.3}', 1.23456789); // '1.234'
+format('{:.3}', -1);         // '-1.000'
 ```
 
 Adding a + to the formatting specifier will print the sign regardless of whether the number is negative.
 
 ```js
-format("{:+}", 1); // "+1"
+format('{:+}', 1); // '+1'
+```
+
+## Custom output
+
+If you want to use the print function to output to anything other than `process.stdout` and `process.stderr`, you can import the `Printer` function to create your own print functions, using any output and error streams that are instances of node's `Writable`.
+
+```ts
+// Custom output example (ts)
+import { Printer } from 'rsformat-local/print';
+import { Writable } from 'stream';
+
+let someOutputStream: Writable = /* ... */;
+let someErrorStream: Writable = /* ... */;
+
+let { print, println, eprint, eprintln } = Printer(someOutputStream, someErrorStream);
 ```
