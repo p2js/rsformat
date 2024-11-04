@@ -131,3 +131,40 @@ let someErrorStream: Writable = /* ... */;
 
 let { print, println, eprint, eprintln } = Printer(someOutputStream, someErrorStream);
 ```
+
+## A Note on Performance
+
+You might think that these utilities might have a performance impact on RSFormat's printing functions. And while they do, the functions are still consistently faster than `console.log`.
+
+A simple benchmark setup like the one below will demonstrate that `println` is more performant, even when doing things like base conversions and text alignment, compared to `console.log` logging a simple string:
+
+```js
+// benchmark.mjs
+import { println } from "rsformat-local";
+
+const time = (fn, iter) => {
+    let time = Date.now();
+    while (iter-- > 0) {
+        fn();
+    }
+    return Date.now() - time;
+}
+
+let iterations = 100000;
+
+let logTime = time(() => console.log("hello"), iterations);
+let printlnTime = time(() => println("{:>+#7X}", 255), iterations);
+
+println("console.log time for {} executions: {}ms", iterations, logTime);
+println("rsformat.println time for {} executions: {}ms", iterations, printlnTime);
+```
+
+```
+> node benchmark.mjs
+...After a lot of output...
+
+console.log time for 100000 executions: 7217ms
+rsformat.println time for 100000 executions: 5900ms
+```
+
+_Tested on node.js using a Windows laptop on an Intel core I7-1360P, on battery power. Performance will vary, but this benchmark was just to show that RSFormat has no performance penalty._
