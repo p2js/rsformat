@@ -189,8 +189,5 @@ export function format(str: string, ...params: any[]) {
             return param;
         }
     );
-    if (param_counter < params.length) {
-        throw new Error(`parameter ${param_counter} and following are unused`);
-    }
     return str;
 }
