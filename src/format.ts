@@ -1,4 +1,4 @@
-import { inspect } from 'util';
+import { inspect } from 'node:util';
 
 /**
  * Regex to match for possible formatting insertion points.

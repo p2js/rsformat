@@ -1,4 +1,5 @@
-import { Writable } from 'stream';
+import { Writable } from 'node:stream';
+import process from 'node:process';
 import { format } from './format';
 
 export function Printer(outStream: Writable = process.stdout, errStream: Writable = process.stderr) {
@@ -20,7 +21,7 @@ export function Printer(outStream: Writable = process.stdout, errStream: Writabl
          * @param params Parameters to be inserted into the format string
          */
         println: function println(format_string: string, ...params: any[]) {
-            outStream.write(format(format_string, ...params) + "\n");
+            outStream.write(format(format_string, ...params) + '\n');
         },
         /**
          * Print a format string to an error stream (usually process.stderr).
@@ -39,7 +40,7 @@ export function Printer(outStream: Writable = process.stdout, errStream: Writabl
          * @param params Parameters to be inserted into the format string
          */
         eprintln: function eprintln(format_string: string, ...params: any[]) {
-            errStream.write(format(format_string, ...params) + "\n");
+            errStream.write(format(format_string, ...params) + '\n');
         },
     }
 }

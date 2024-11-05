@@ -123,7 +123,7 @@ If you want to use the print function to output to anything other than `process.
 
 ```ts
 // Custom output example (ts)
-import { Printer } from 'rsformat-local/print';
+import { Printer } from 'rsformat/print';
 import { Writable } from 'stream';
 
 let someOutputStream: Writable = /* ... */;
@@ -140,7 +140,7 @@ A simple benchmark setup like the one below will demonstrate that `println` is m
 
 ```js
 // benchmark.mjs
-import { println } from "rsformat";
+import { println } from 'rsformat';
 
 const time = (fn, iter) => {
     let time = Date.now();
@@ -152,11 +152,11 @@ const time = (fn, iter) => {
 
 let iterations = 100000;
 
-let logTime = time(() => console.log("hello"), iterations);
-let printlnTime = time(() => println("{:>+#7X}", 255), iterations);
+let logTime = time(() => console.log('hello'), iterations);
+let printlnTime = time(() => println('{:>+#7X}', 255), iterations);
 
-println("console.log time for {} executions: {}ms", iterations, logTime);
-println("rsformat.println time for {} executions: {}ms", iterations, printlnTime);
+println('console.log time for {} executions: {}ms', iterations, logTime);
+println('rsformat.println time for {} executions: {}ms', iterations, printlnTime);
 ```
 
 ```
