@@ -28,6 +28,18 @@ const FORMAT_REGEX = (
  * @param params Parameters to be inserted into the format string
  */
 export function format(str: string, ...params: any[]) {
+    return fmt_raw(str, params);
+}
+
+/**
+ * Raw formatting behaviour function called by `format` and printing functions.
+ * 
+ * @param str String used for formatting
+ * @param params Parameters to be inserted into the format string
+ * @param options Options passed into formatting
+ * @param options.colors Whether to use colors in debug formatting
+ */
+export function fmt_raw(str: string, params: any[], options = { colors: false }) {
     // Counter used for insertion of unnumbered values
     let param_counter = 0;
 
@@ -102,7 +114,7 @@ export function format(str: string, ...params: any[]) {
                 case "?":
                     param = inspect(param, {
                         depth: Infinity,
-                        colors: true,
+                        colors: options.colors,
                         compact: $pretty !== '#'
                     });
                     break;
