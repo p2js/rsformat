@@ -72,14 +72,15 @@ export function fmt_raw(str: string, params: any[], options = { colors: false })
             }
 
             let param_type = typeof param;
+            let true_length = -1;
 
             // Process parameter type
             switch ($type) {
-                case "o": param = param.toString(8); break;
-                case "x": param = param.toString(16); break;
-                case "X": param = param.toString(16).toUpperCase(); break;
-                case "b": param = param.toString(2); break;
-                case "e":
+                case 'o': param = param.toString(8); break;
+                case 'x': param = param.toString(16); break;
+                case 'X': param = param.toString(16).toUpperCase(); break;
+                case 'b': param = param.toString(2); break;
+                case 'e':
                     switch (param_type) {
                         case 'number':
                             param = param.toExponential();
@@ -95,7 +96,7 @@ export function fmt_raw(str: string, params: any[], options = { colors: false })
                             break;
                     }
                     break;
-                case "E":
+                case 'E':
                     switch (param_type) {
                         case 'number':
                             param = param.toExponential().toUpperCase();
@@ -111,7 +112,15 @@ export function fmt_raw(str: string, params: any[], options = { colors: false })
                             break;
                     }
                     break;
-                case "?":
+                case '?':
+                    // Do not force sign or align to precision when using inspect
+                    $sign = undefined;
+                    $precision = undefined;
+                    true_length = inspect(param, {
+                        depth: Infinity,
+                        colors: false,
+                        compact: $pretty !== '#'
+                    }).length;
                     param = inspect(param, {
                         depth: Infinity,
                         colors: options.colors,
@@ -120,12 +129,15 @@ export function fmt_raw(str: string, params: any[], options = { colors: false })
                     break;
                 default: param = param.toString(); break;
             };
+            if (true_length == -1) {
+                true_length = param.length;
+            }
 
             // Compute radix-point precision on numbers
             if (param_type == 'number' && $precision) {
-                let [pre, post] = (param as string).split(".");
+                let [pre, post] = (param as string).split('.');
                 if (post === undefined) {
-                    post = "";
+                    post = '';
                 }
                 let precision = +$precision.substring(1, $precision.length);
                 if (post.length > precision) {
@@ -133,7 +145,7 @@ export function fmt_raw(str: string, params: any[], options = { colors: false })
                 } else while (post.length < precision) {
                     post = post + '0';
                 }
-                param = pre + "." + post;
+                param = pre + '.' + post;
             }
 
             let width: number;
@@ -172,31 +184,24 @@ export function fmt_raw(str: string, params: any[], options = { colors: false })
 
                 param = maybe_sign + param;
             }
-            if (!filled && width) {
+            if (!filled && width > true_length) {
                 // Compute fill/align
                 $align_direction ||= '>'
                 $fill_character ||= ' ';
+                let left = '';
+                let right = '';
+                let diff = width - true_length;
+
                 switch ($align_direction) {
-                    case '>':
-                        while (width - param.length > 0) {
-                            param = $fill_character + param;
-                        }
-                        break;
-                    case '<':
-                        while (width - param.length > 0) {
-                            param = param + $fill_character;
-                        }
-                        break;
+                    case '>': left = $fill_character.repeat(diff); break;
+                    case '<': right = $fill_character.repeat(diff); break;
                     case '^':
-                        while (width - param.length > 1) {
-                            param = $fill_character + param + $fill_character;
-                        }
-                        // Prioritise right-aligment on uneven alignment
-                        if (width - param.length == 1) {
-                            param = $fill_character + param;
-                        }
+                        left = $fill_character.repeat(diff - diff / 2);
+                        // Prioritise right-aligment on uneven length
+                        right = $fill_character.repeat(diff / 2 + diff % 2);
                         break;
                 }
+                param = left + param + right;
             }
             return param;
         }
