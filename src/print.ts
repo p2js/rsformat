@@ -2,7 +2,7 @@ import { Writable } from 'node:stream';
 import process from 'node:process';
 import { fmt_raw } from './format';
 
-export function Printer(outStream: Writable = process.stdout, errStream: Writable = process.stderr) {
+export function Printer(outStream: Writable = process.stdout, errStream: Writable = process.stderr, options = { debugColors: true }) {
     return {
         /**
          * Print a format string to an output stream (usually process.stdout).
@@ -11,7 +11,7 @@ export function Printer(outStream: Writable = process.stdout, errStream: Writabl
          * @param params Parameters to be inserted into the format string
          */
         print: function print(format_string: string, ...params: any[]) {
-            outStream.write(fmt_raw(format_string, params, { colors: true }));
+            outStream.write(fmt_raw(format_string, params, { colors: options.debugColors }));
         },
         /**
          * Print a format string to an output stream (usually process.stdout)
@@ -21,7 +21,7 @@ export function Printer(outStream: Writable = process.stdout, errStream: Writabl
          * @param params Parameters to be inserted into the format string
          */
         println: function println(format_string: string, ...params: any[]) {
-            outStream.write(fmt_raw(format_string, params, { colors: true }) + '\n');
+            outStream.write(fmt_raw(format_string, params, { colors: options.debugColors }) + '\n');
         },
         /**
          * Print a format string to an error stream (usually process.stderr).
@@ -30,7 +30,7 @@ export function Printer(outStream: Writable = process.stdout, errStream: Writabl
          * @param params Parameters to be inserted into the format string
          */
         eprint: function eprint(format_string: string, ...params: any[]) {
-            errStream.write(fmt_raw(format_string, params, { colors: true }));
+            errStream.write(fmt_raw(format_string, params, { colors: options.debugColors }));
         },
         /**
          * Print a format string to an error stream (usually process.stderr)
@@ -40,7 +40,7 @@ export function Printer(outStream: Writable = process.stdout, errStream: Writabl
          * @param params Parameters to be inserted into the format string
          */
         eprintln: function eprintln(format_string: string, ...params: any[]) {
-            errStream.write(fmt_raw(format_string, params, { colors: true }) + '\n');
+            errStream.write(fmt_raw(format_string, params, { colors: options.debugColors }) + '\n');
         },
     }
 }
