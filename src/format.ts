@@ -169,9 +169,20 @@ export function fmt_raw(str: string, params: any[], options = { colors: false })
                     maybe_sign = '';
                 }
 
-                //If the type is x or X and pretty printing enabled, add 0x
-                if ((($type === 'x') || ($type === 'X')) && ($pretty === '#')) {
-                    maybe_sign += '0x';
+                // If pretty printing is enabled and the formating calls for a prefix, add it
+                if ($pretty === '#') {
+                    switch ($type) {
+                        case 'o':
+                            maybe_sign += "0o";
+                            break;
+                        case 'x':
+                        case 'X':
+                            maybe_sign += "0x";
+                            break;
+                        case 'b':
+                            maybe_sign += "0b";
+                            break;
+                    }
                 }
 
                 //pad with zeroes if specified  

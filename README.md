@@ -90,7 +90,7 @@ format('{:.>7}', [1,2]); // '....1,2'
 
 #### Pretty Printing
 
-In some instances (namely debug and hexadecimal formatting), adding a `#` before the format specifier will use an alternative 'pretty' printing style. This amounts to using non-compact `util.inspect` for debug printing (spanning multiple lines), and adding 0x to hexadecimal numbers.
+In some instances (namely debug, binary, octal and hexadecimal formatting), adding a `#` before the format specifier will use an alternative 'pretty' printing style. This amounts to using non-compact `util.inspect` for debug printing (spanning multiple lines), and adding 0b/0o/0x as a prefix for the numbers formatted as powers of two.
 
 ```js
 format('{:#X}', 255); // '0xFF'
