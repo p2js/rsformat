@@ -36,8 +36,7 @@ export function format(str: string, ...params: any[]) {
  * 
  * @param str String used for formatting
  * @param params Parameters to be inserted into the format string
- * @param options Options passed into formatting
- * @param options.colors Whether to use colors in debug formatting
+ * @param options Options passed into formatting (Whether to use colors in debug formatting - false by default)
  */
 export function fmt_raw(str: string, params: any[], options = { colors: false }) {
     // Counter used for insertion of unnumbered values
@@ -136,16 +135,13 @@ export function fmt_raw(str: string, params: any[], options = { colors: false })
             // Compute radix-point precision on numbers
             if (param_type == 'number' && $precision) {
                 let [pre, post] = (param as string).split('.');
-                if (post === undefined) {
-                    post = '';
-                }
                 let precision = +$precision.substring(1, $precision.length);
-                if (post.length > precision) {
-                    post = post.substring(0, precision);
-                } else while (post.length < precision) {
-                    post = post + '0';
+                if (!precision) { // precision = 0, do not include radix point
+                    param = pre;
+                } else {
+                    post = ((post || '') + '0'.repeat(precision)).slice(0, precision);
+                    param = pre + '.' + post;
                 }
-                param = pre + '.' + post;
             }
 
             let width: number;
