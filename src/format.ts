@@ -12,13 +12,11 @@ export class RsString extends String {
     private cachedPlain: string | null = null;
     private strings: TemplateStringsArray;
     private params: any[];
-
     constructor(strings: TemplateStringsArray, params: any[]) {
         super('');
         this.strings = strings;
         this.params = params;
     }
-
     override toString(): string {
         if (this.__debugColors) {
             if (this.cachedColor === null) this.cachedColor = buildString(this.strings, this.params, true);
@@ -70,7 +68,7 @@ export function buildString(strings: TemplateStringsArray, params: any[], debugC
 }
 type DoNotFormat = { end: number, doNotFormat: true }
 type AlignDirection = '<' | '^' | '>';
-type FormatType = '?' | 'o' | 'x' | 'X' | 'b' | 'e' | 'E' | '';
+type FormatType = '?' | 'o' | 'x' | 'X' | 'b' | 'e' | 'E' | 'n' | 'N' | '';
 type FormatSpecifier = {
     end: number,
     fill: string,
@@ -148,6 +146,8 @@ export function parseFormatSpecifier(string: string, param_number: number = 0): 
         case 'b':
         case 'e':
         case 'E':
+        case 'n':
+        case 'N':
             format_type = string[idx++] as FormatType;
     }
     // End
@@ -189,42 +189,38 @@ export function formatParam(param: any, format: FormatSpecifier, debugColors: bo
         case 'X': param = param.toString(16).toUpperCase(); break;
         case 'b': param = param.toString(2); break;
         case 'e':
-            switch (param_type) {
-                case 'number':
-                    param = param.toExponential();
-                    break;
-                case 'bigint':
-                    param = param.toLocaleString('en-US', {
-                        notation: 'scientific',
-                        maximumFractionDigits: 20,
-                    }).toLowerCase();
-                    break;
-                default:
-                    param = param.toString();
-                    break;
-            }
-            break;
         case 'E':
-            switch (param_type) {
-                case 'number':
-                    param = param.toExponential().toUpperCase();
-                    break;
-                case 'bigint':
-                    param = param.toLocaleString('en-US', {
-                        notation: 'scientific',
-                        maximumFractionDigits: 20
-                    });
-                    break;
-                default:
-                    param = param.toString();
-                    break;
+            if (param_type != 'number' && param_type != 'bigint') {
+                param = param.toString();
+                break;
             }
+            param = param.toLocaleString('en-US', { notation: 'scientific', maximumFractionDigits: 20 });
+            if (format.type == 'e') param = param.toLowercase();
             break;
-        case '?':
-            // Do not force sign, pad with zeroes or align to precision when using debug formatting
-            format.force_sign = false;
+        case 'n':
+        case 'N':
+            if (param_type != 'number' && param_type != 'bigint') {
+                param = param.toString();
+                break;
+            }
+            // Round and add suffix
+            if (param_type == 'number') param = Math.round(param);
+            param = param.toString();
+            let last_2_digits = param.substring(param.length - 2);
+            if (last_2_digits == '11' || last_2_digits == '12' || last_2_digits == '13') {
+                param = param + 'th';
+            } else switch (last_2_digits[last_2_digits.length - 1]) {
+                case '1': param = param + 'st'; break;
+                case '2': param = param + 'nd'; break;
+                case '3': param = param + 'rd'; break;
+                default: param = param + 'th';
+            }
+            if (format.type == 'N') param = param.toUpperCase();
+            // Do not pad with zeroes or align to precision when using ordinal formatting
             format.pad_zeroes = false;
             format.precision = -1;
+            break;
+        case '?':
             true_length = inspect(param, {
                 depth: Infinity,
                 colors: false,
@@ -235,13 +231,14 @@ export function formatParam(param: any, format: FormatSpecifier, debugColors: bo
                 colors: debugColors,
                 compact: !format.pretty
             });
+            // Do not force sign, pad with zeroes or align to precision when using debug formatting
+            param_type = 'string';
             break;
         default: param = param.toString(); break;
     };
     if (true_length == -1) {
         true_length = param.length;
     }
-
     // Compute radix-point precision on numbers
     if (param_type == 'number' && format.precision != -1) {
         let [pre, post] = (param as string).split('.');
@@ -256,7 +253,6 @@ export function formatParam(param: any, format: FormatSpecifier, debugColors: bo
     }
 
     let filled = false;
-
     if ((param_type == 'number') || (param_type == 'bigint')) {
         // Compute parameter sign
         let maybe_sign = (param as string).substring(0, 1);
@@ -267,7 +263,6 @@ export function formatParam(param: any, format: FormatSpecifier, debugColors: bo
         } else {
             maybe_sign = '';
         }
-
         // If pretty printing is enabled and the formating calls for a prefix, add it
         if (format.pretty) {
             switch (format.type) {
@@ -283,7 +278,6 @@ export function formatParam(param: any, format: FormatSpecifier, debugColors: bo
                     break;
             }
         }
-
         //pad with zeroes if specified  
         if (format.pad_zeroes) {
             filled = true;
@@ -292,7 +286,6 @@ export function formatParam(param: any, format: FormatSpecifier, debugColors: bo
                 true_length++;
             }
         }
-
         true_length += maybe_sign.length;
         param = maybe_sign + param;
     }

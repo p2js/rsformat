@@ -55,15 +55,18 @@ println(rs`...`);
 
 Format specifiers can be used by adding `:` after the format argument, and will format the value differently inside the string. See the [rust format docs](https://doc.rust-lang.org/std/fmt/) for more detailed information on format specifiers.
 
-This implementation differs from the rust one in a few ways:
+This implementation differs from the Rust one in a few ways:
 
 - Rather than escaping the braces using `{{` or `}}`, the formatting colon can be escaped using `::`.
 - Different parameters are referenced using `rs.ref(n)` rather than the number literal `n`.
 - To separate a formatting specifier from the rest of the string without adding a space, an extra closing colon must be added (eg. `:#?:foo` - specifier gets parsed as `:#?`)
-- The `-` sign (unused in rust) is unsupported.
+- The `-` sign (unused in Rust) is unsupported.
 - Pointer format type `p` is unsupported.
 - Hexadecimal debug types `x?` and `X?` are unsupported. 
 - Specifying precision with `*` is unsupported.
+- New format types have been added:
+    - `N` for uppercase ordinal suffixing of numbers (rounded to integers)
+    - `n` for lowercase ordinal suffixing of numbers (rounded to integers)
 
 #### Different formatting types
 
@@ -77,7 +80,15 @@ println(rs`${obj}:?`) // prints '{ a: 1 }'
 
 The provided printing functions will display colors in the output of `util.inspect`, but otherwise it will be formatted without color.
 
-The number base specifiers `x`,`X`,`b`,`o`,`e`,`E` will convert a `number` or `bigint` parameter to lowercase hex, uppercase hex, binary octal, lowercase scientific notation, and uppercase scientific notation respectively.
+The specifiers `x`,`X`,`b`,`o`,`e`,`E`, `n`, `N` will convert a `number` or `bigint` parameter to:
+- `x`: lowercase hex
+- `X`: uppercase hex
+- `b`: binary 
+- `o`: octal 
+- `e`: lowercase scientific notation
+- `E`: uppercase scientific notation
+- `n`: lowercase ordinal suffixed string (rounded to integer)
+- `N`: uppercase ordinal suffixed string (rounded to integer)
 
 ```js
 let advancedInfo = (n) => rs`${n} is ${n}:x in hex, ${n}:b in binary and ${n}:o in octal`;
@@ -86,6 +97,7 @@ advancedInfo(15); // '15 is f in hex, 1111 in binary and 17 in octal'
 
 let hugeNumber = 1000n;
 let science = rs`${hugeNumber}:E`; // '1E3'
+let ordinal = rs`${hugeNumber}:n`; // '1000th'
 ```
 
 #### Padding, Alignment
