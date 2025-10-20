@@ -1,14 +1,12 @@
 # RSFormat
 
-RSFormat is a string formatting/printing library for JavaScript. It offers a minimal, yet powerful and flexible alternative to the string formatting and printing provided by `console.log`.
+RSFormat is a string formatting/printing library for JavaScript. It offers a minimal, yet powerful and flexible alternative to the string formatting and printing provided by `util.format` and `console.log`.
 
 ## Motivation
 
-`console.log` is an odd method: its output can be affected by functions called before/after it (such as `console.group`), or their order affected by what parameters there are. For example, when calling `console.log(string, number)`, number can come either after or inside `string` depending on the value of `string`.
+`console.log` is an odd method: its output can be affected by functions called before/after it (such as `console.group`), or their order affected by what parameters there are. For example, when calling `console.log(string, number)`, number can come either after or inside `string` depending on the value of `string`. This behaviour has largely been superseded at a language level by template literals, which allow formatting of parameters directly inside the templates, causing these methods to have unnecessary overhead and undesired behaviour.
 
-RSFormat provides alternative functions with standardised behaviour: its `format`, `println` and all other functions will always output in the same manner, and have a standardised syntax which will only print the initial string, formatted with the parameters provided afterwards.
-
-Rust formatting also includes a lot of convenient operators for formatting text, such as padding/alignment, printing numbers in a given base, specifying decimal precision, etc.. This makes it a more ergonomic and convenient approach to printing things to the console.
+RSFormat builds onto template literals by providing an additional formatting tag that implements Rust-style format specifiers, as well as lower-overhead printing functions for strings and format strings. Rust formatting includes a lot of convenient operators for formatting text, such as padding/alignment, printing numbers in a given base, specifying decimal precision, etc.
 
 ## Usage
 
@@ -20,30 +18,36 @@ npm install rsformat
 
 ### Basic formatting and printing to console
 
-RSFormat functions are called using a format string, and any number of format arguments following it.
-
-Any instance of `{}` in the format strings will get replaced with a value.
-
-You can specify what value you want in the parameters by using a number inside the insertion point.
+the `rs` template tag can be used to enable rust-style formatting in a template.
+To reference a previous or following argument, use `rs.ref` with the parameter number.
 
 ```js
-import { format, println } from 'rsformat';      // ESM
-const { format, println } = require('rsformat'); // CommonJS
+import { rs, println } from 'rsformat';      // ESM
+const { rs, println } = require('rsformat'); // CommonJS
 
-let name = 'everyone';
+let number = 15;
 
-let greeting = format('Hello {}!', name); // Evaluates to the string 'Hello, everyone!'
+let info = rs`${number} is ${rs.ref(0)}:x in hex`; // info == '15 is f in hex'
+```
 
-println('I have {1} apples and {0} oranges', 13, 14); // Will print 'I have 14 apples and 13 oranges' to the console
+note templates tagged with `rs` are instances of a special class `RsString` that extends `String`, rather than a primitive value. This is to enable colors for debug formatting inside the printing functions (See Different Formatting Types). This should not affect normal usage, but `rs.raw` can be used as an alternative tag to get a primitive `string`.
+
+The printing functions can be called with plain strings, instances of `String` or strings formatted with `rs`:
+
+```ts
+println('Hello World');
+println(rs`...`);
 ```
 
 ### Format Specifiers
 
-Format specifiers can be used by adding `:` inside the insertion point (after the optional argument number), and will format the value differently inside the string. See the [rust format docs](https://doc.rust-lang.org/std/fmt/#syntax) for more detailed information on format specifiers.
+Format specifiers can be used by adding `:` after the format argument, and will format the value differently inside the string. See the [rust format docs](https://doc.rust-lang.org/std/fmt/#syntax) for more detailed information on format specifiers.
 
 This implementation differs from the rust one in a few ways:
 
-- Named arguments before or in format specifiers or in values aren't allowed, only numbers can be used.
+- Rather than escaping the braces using `{{` or `}}`, the formatting colon can be escaped using `::`.
+- different parameters are referenced using `rs.ref(n)` rather than the number literal `n`.
+- To separate a formatting specifier from the rest of the string without adding a space, an extra closing colon must be added (eg. `:#?:foo`- specifier gets parsed as `:#?`)
 - The `-` sign (unused in rust) is unsupported.
 - Pointer format type `p` is unsupported.
 - Hexadecimal debug types `x?` and `X?` are unsupported. 
@@ -51,20 +55,23 @@ This implementation differs from the rust one in a few ways:
 
 #### Different formatting types
 
+The debug format specifier `?` uses `util.inspect` to stringify the parameter rather than `toString`.
+ 
 ```js
-// Debug format specifier: ?, uses util.inspect rather than toString
+let obj = { a: 1 };
+println(rs`${obj}`) // prints '[object Object]'
+println(rs`${obj}:?`) // prints '{ a: 1 }'
+```
+The provided printing functions will display colors in the output of `util.inspect`, but otherwise it will be formatted without color.
 
-println('{}', { a: 1 }); //prints '[object Object]'
-println('{:?}', { a: 1 }); //prints "{ a:1 }"
+The number base specifiers `x`,`X`,`b`,`o`,`e`,`E` will convert a `number` or `bigint` parameter to lowercase hex, uppercase hex, binary octal, lowercase scientific notation, and uppercase scientific notation respectively.
+```js
+let advancedInfo = (n) => rs`${n} is ${n}:x in hex, ${n}:b in binary and ${n}:o in octal`;
 
-// Number base specifiers: x, X, b, o - for lower/uppercase hexadecimal, binary, octal
-
-format('{} is {0:x} in hex, {0:b} in binary and {0:o} in octal', 15); // '15 is f in hex, 1111 in binary and 17 in octal'
-
-// Scientific notation specifiers: e, E - for lower/uppercase scientific notation
+advancedInfo(15); // '15 is f in hex, 1111 in binary and 17 in octal'
 
 let hugeNumber = 1000n;
-format('{:E}', hugeNumber); // '1E3';
+let science = rs`${hugeNumber}:E`; // '1E3'
 ```
 
 #### Padding, Alignment
@@ -80,12 +87,12 @@ Will print a pyramid of 'a's:
 */
 let pyramidLevels = ['a', 'aaa', 'aaaaa'];
 for(let value of pyramidLevels) {
-    println('{:^5}', value);
+    println(rs`${value}:^5`);
 }
 ```
 
 ```js
-format('{:.>7}', [1,2]); // '....1,2'
+rs`${[1,2]}:.>7` // '....1,2'
 ```
 
 #### Pretty Printing
@@ -93,7 +100,7 @@ format('{:.>7}', [1,2]); // '....1,2'
 In some instances (namely debug, binary, octal and hexadecimal formatting), adding a `#` before the format specifier will use an alternative 'pretty' printing style. This amounts to using non-compact `util.inspect` for debug printing (spanning multiple lines), and adding 0b/0o/0x as a prefix for the numbers formatted as powers of two.
 
 ```js
-format('{:#X}', 255); // '0xFF'
+rs`${255}:#X` // '0xFF'
 ```
 
 #### Specific Number Formatting
@@ -101,70 +108,19 @@ format('{:#X}', 255); // '0xFF'
 Specifically for `number` and `bigint` values, a 0 can be placed before the width to pad the number with 0s instead. This will account for signs and possible formatting differences.
 
 ```js
-format('{:#07x}', 15) // '0x0000F'
+rs`${15}:#07x` // '0x0000F'
 ```
 
 Decimal precision can be specified for numbers by adding a . and specifying an integer for precision.
 
 ```js
-format('{:.3}', 1.23456789); // '1.234'
-format('{:.3}', -1);         // '-1.000'
+rs`${1.23456789}:.3` // '1.234'
+rs`${-1}:.3`         // '-1.000'
 ```
 
 Adding a + to the formatting specifier will print the sign regardless of whether the number is negative.
 
 ```js
+rs`${1}:+` // '+1'
 format('{:+}', 1); // '+1'
 ```
-
-## Custom output
-
-If you want to use the print function to output to anything other than `process.stdout` and `process.stderr`, you can import the `Printer` function to create your own print functions, using any output and error streams that are instances of node's `Writable`.
-
-```ts
-// Custom output example (ts)
-import { Printer } from 'rsformat/print';
-import { Writable } from 'stream';
-
-let someOutputStream: Writable = /* ... */;
-let someErrorStream: Writable = /* ... */;
-
-let { print, println, eprint, eprintln } = Printer(someOutputStream, someErrorStream);
-```
-
-## A Note on Performance
-
-You might think that these utilities might have a performance impact on RSFormat's printing functions. And while they do, the functions are still consistently faster than `console.log`.
-
-A simple benchmark setup like the one below will demonstrate that `println` is more performant, even when doing things like base conversions and text alignment, compared to `console.log` logging a simple string:
-
-```js
-// benchmark.mjs
-import { println } from 'rsformat';
-
-const time = (fn, iter) => {
-    let time = Date.now();
-    while (iter-- > 0) {
-        fn();
-    }
-    return Date.now() - time;
-}
-
-let iterations = 100000;
-
-let logTime = time(() => console.log('hello'), iterations);
-let printlnTime = time(() => println('{:>+#7X}', 255), iterations);
-
-println('console.log time for {} executions: {}ms', iterations, logTime);
-println('rsformat.println time for {} executions: {}ms', iterations, printlnTime);
-```
-
-```
-> node benchmark.mjs
-...After a lot of output...
-
-console.log time for 100000 executions: 7217ms
-rsformat.println time for 100000 executions: 5900ms
-```
-
-_Tested on node.js using a Windows laptop on an Intel core I7-1360P, on battery power. Performance will vary, but this benchmark was just to show that RSFormat has no performance penalty._
