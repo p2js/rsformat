@@ -63,7 +63,7 @@ This implementation differs from the Rust one in a few ways:
 - The `-` sign (unused in Rust) is unsupported.
 - Pointer format type `p` is unsupported.
 - Hexadecimal debug types `x?` and `X?` are unsupported. 
-- Specifying precision with `*` is unsupported.
+- Specifying precision dynamically with `*` is unsupported. Instead, precision and width can both be specified dynamically by using a separate number parameter in place of the number.
 - New format types have been added:
     - `N` for uppercase ordinal suffixing of numbers (rounded to integers)
     - `n` for lowercase ordinal suffixing of numbers (rounded to integers)
@@ -102,7 +102,7 @@ let ordinal = rs`${hugeNumber}:n`; // '1000th'
 
 #### Padding, Alignment
 
-Values can be aligned using any fill character (will default to a space ` `), and either left, center or right aligned with `<`, `^` or `>` respectively (will default to right alignment `>`). You will also have to specify a width with an integer after the alignment:
+Values can be aligned using any fill character (will default to a space ` `), and either left, center or right aligned with `<`, `^` or `>` respectively (will default to right alignment `>`). You will also have to specify a width with an integer after the alignment, or provide a separate number parameter.
 
 ```js
 /*
@@ -118,7 +118,7 @@ for(let value of pyramidLevels) {
 ```
 
 ```js
-rs`${[1,2]}:.>7` // '....1,2'
+rs`${[1,2]}:.>${7}` // '....1,2'
 ```
 
 #### Pretty Printing
@@ -137,11 +137,11 @@ Specifically for `number` and `bigint` values, a `0` can be placed before the wi
 rs`${15}:#07x` // '0x0000F'
 ```
 
-Decimal precision can be specified for numbers by adding a `.` and specifying an integer for precision.
+Decimal precision can be specified for numbers by adding a `.` and specifying an integer for precision. An additional parameter can also be provided to do this dynamically.
 
 ```js
 rs`${1.23456789}:.3` // '1.234'
-rs`${-1}:.3`         // '-1.000'
+rs`${-1}:.${3}`      // '-1.000'
 ```
 
 Adding a + to the formatting specifier will print the sign regardless of whether the number is negative.

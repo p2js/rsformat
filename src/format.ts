@@ -42,35 +42,117 @@ export function buildString(strings: TemplateStringsArray, params: any[], debugC
     for (let i = 1; i < strings.length; ++i) {
         let string = strings[i];
         let param = params[i - 1];
-
+        // Resolve parameter references recursively
         while (typeof param == 'object' && '__rs_param_ref' in param) {
             let ref_number = param.__rs_param_ref;
             if (typeof ref_number != 'number'
                 || ref_number < 0 || ref_number >= params.length) {
                 throw new Error(`Parameter ${i - 1}: Invalid reference`);
             }
-            if (ref_number == i - 1) throw new Error(`Parameter ${i - 1} references itself recursively`)
+            if (ref_number == i - 1) throw new Error(`Parameter ${i - 1} references itself recursively`);
             param = params[param.__rs_param_ref];
         }
-
-        let format = parseFormatSpecifier(string, i - 1);
-
-        if ('doNotFormat' in format) {
-            out.push(param.toString() + string.substring(format.end));
+        // Parse format specifier
+        // If the string starts with a single : it has a format specifier,
+        // If it has two the first : is being escaped and can be removed
+        if (string[0] == ':') {
+            if (string[1] == ':') {
+                out.push(param.toString() + string.substring(1));
+                continue;
+            }
+        } else {
+            out.push(param.toString() + string);
             continue;
+        };
+        // Keep track of our index in the string to slice the format specifier later
+        let idx = 1;
+        // Compute format based on string
+        let fill = ' ',
+            align = '>' as AlignDirection,
+            force_sign = false,
+            pretty = false,
+            pad_zeroes = false,
+            width = 0,
+            precision = -1,
+            format_type = '' as FormatType;
+        // Fill/align
+        // If the next character is align, then the current is the fill
+        if (string[idx + 1] == '<' || string[idx + 1] == '^' || string[idx + 1] == '>') {
+            fill = string[idx++];
+        }
+        if (string[idx] == '<' || string[idx] == '^' || string[idx] == '>') {
+            align = string[idx++] as AlignDirection;
+        }
+        // Force sign
+        if (string[idx] == '+') force_sign = true, idx++;
+        // Pretty formatting
+        if (string[idx] == '#') pretty = true, idx++;
+        // Padding numbers with zeroes
+        if (string[idx] == '0') pad_zeroes = true, idx++;
+        // Width
+        if (is_digit(string[idx])) {
+            let width_substring_start = idx++;
+            while (is_digit(string[idx])) idx++;
+            width = Number(string.substring(width_substring_start, idx));
+        } else if (idx == string.length) {
+            // Grab the next parameter and fuse the string with the next one
+            width = params[i];
+            if (typeof width != 'number') throw error(i - 1, idx, `Expected a number or number parameter for width specifier (found ${string[idx] ? "'" + string[idx] + "'" : typeof width + ' parameter'}).\nIf the next parameter was not meant to be a width number, add a : to the end of the formatting specifier.`);
+            string += strings[++i];
+        }
+        // Precision
+        if (string[idx] == '.') {
+            if (!is_digit(string[++idx])) {
+                // Grab the next parameter and fuse the string with the next one
+                precision = params[i];
+                if (typeof precision != 'number') throw error(i - 1, idx, `Expected a number or number parameter for precision specifier after . (found ${string[idx] ? "'" + string[idx] + "'" : typeof width + ' parameter'}).\nIf the next parameter was not meant to be a precision number, add a : to the end of the formatting specifier.`);
+                string += strings[++i];
+            } else {
+                let precision_substring_start = idx;
+                while (is_digit(string[idx])) idx++;
+                precision = Number(string.substring(precision_substring_start, idx));
+            }
+        }
+        // Format type
+        switch (string[idx]) {
+            case '?':
+            case 'o':
+            case 'x':
+            case 'X':
+            case 'b':
+            case 'e':
+            case 'E':
+            case 'n':
+            case 'N':
+                format_type = string[idx++] as FormatType;
+        }
+        // End of specifier
+        if (string[idx] == ':') {
+            idx++;
+        } else if (string[idx] != ' ' && string[idx] !== undefined) {
+            throw error(i - 1, idx, `Expected colon (':') or space (' ') at end of formatting specifier (found '${string[idx]}')`);
         }
 
-        let formatted = formatParam(param, format, debugColors);
+        // Format parameter according to specifier
+        let formatted = formatParam(param, {
+            fill,
+            align,
+            force_sign,
+            pretty,
+            pad_zeroes,
+            width,
+            precision,
+            type: format_type
+        }, debugColors);
 
-        out.push(formatted + string.substring(format.end));
+        out.push(formatted + string.substring(idx));
     }
     return out.join('');
 }
-type DoNotFormat = { end: number, doNotFormat: true }
+
 type AlignDirection = '<' | '^' | '>';
 type FormatType = '?' | 'o' | 'x' | 'X' | 'b' | 'e' | 'E' | 'n' | 'N' | '';
 type FormatSpecifier = {
-    end: number,
     fill: string,
     align: AlignDirection,
     force_sign: boolean,
@@ -80,96 +162,6 @@ type FormatSpecifier = {
     precision: number,
     type: FormatType;
 }
-/**
- * Parse a Rust-like format specifier in a string.
- * 
- * @param string String beginning with format specifier
- * @param param_number Number parameter (used for reporting errors)
- * @returns A format specifier object 
- */
-export function parseFormatSpecifier(string: string, param_number: number = 0): DoNotFormat | FormatSpecifier {
-    // If the string starts with a single : it has a format specifier,
-    // If it has two the first : is being escaped and can be removed
-    if (string[0] == ':') {
-        if (string[1] == ':') {
-            return { end: 1, doNotFormat: true };
-        }
-    } else {
-        return { end: 0, doNotFormat: true };
-    };
-    // Keep track of our index in the string to slice the format specifier later
-    let idx = 1;
-    // Compute format based on string
-    let fill = ' ',
-        align = '>' as AlignDirection,
-        force_sign = false,
-        pretty = false,
-        pad_zeroes = false,
-        width = 0,
-        precision = -1,
-        format_type = '' as FormatType;
-
-    // Fill/align
-
-    // If the next character is align, then the current is the fill
-    if (string[idx + 1] == '<' || string[idx + 1] == '^' || string[idx + 1] == '>') {
-        fill = string[idx++];
-    }
-    if (string[idx] == '<' || string[idx] == '^' || string[idx] == '>') {
-        align = string[idx++] as AlignDirection;
-    }
-    // Force sign
-    if (string[idx] == '+') force_sign = true, idx++;
-    // Pretty formatting
-    if (string[idx] == '#') pretty = true, idx++;
-    // Padding numbers with zeroes
-    if (string[idx] == '0') pad_zeroes = true, idx++;
-    // Width
-    if (is_digit(string[idx])) {
-        let width_substring_start = idx++;
-        while (is_digit(string[idx])) idx++;
-        width = Number(string.substring(width_substring_start, idx));
-    }
-    // Precision
-    if (string[idx] == '.') {
-        if (!is_digit(string[++idx])) throw error(param_number, idx, `Expected a number after precision specifier . (found '${string[idx]}')`);
-        let precision_substring_start = idx;
-        while (is_digit(string[idx])) idx++;
-        precision = Number(string.substring(precision_substring_start, idx));
-    }
-    // Format type
-    switch (string[idx]) {
-        case '?':
-        case 'o':
-        case 'x':
-        case 'X':
-        case 'b':
-        case 'e':
-        case 'E':
-        case 'n':
-        case 'N':
-            format_type = string[idx++] as FormatType;
-    }
-    // End
-    if (string[idx] == ':') {
-        idx++;
-    } else if (string[idx] != ' ' && string[idx] !== undefined) {
-        throw error(param_number, idx, `Expected colon (':') or space (' ') at end of formatting specifier (found '${string[idx]}')`);
-    }
-
-    return {
-        end: idx,
-        fill,
-        align,
-        force_sign,
-        pretty,
-        pad_zeroes,
-        width,
-        precision,
-        type: format_type
-    };
-}
-
 /**
  * Format a parameter as a string according to a specifier.
  * 
