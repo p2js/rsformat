@@ -22,7 +22,7 @@ RSFormat builds onto template literals by implementing Rust-style format specifi
 
 ## Usage
 
-You can install rsformat from [npm](https://www.npmjs.com/package/rsformat):
+You can install RSFormat from [npm](https://www.npmjs.com/package/rsformat):
 
 ```sh
 npm install rsformat
@@ -42,9 +42,9 @@ let number = 15;
 let info = rs`${number} is ${rs.ref(0)}:x in hex`; // info == '15 is f in hex'
 ```
 
-Note templates tagged with `rs` are instances of a special class `RsString` that extends `String`, rather than a primitive value. This is to enable colors for debug formatting inside the printing functions (See Different Formatting Types). This should not affect normal usage, but `rs.raw` can be used as an alternative tag to get a primitive `string`.
+> NB: templates tagged with `rs` are instances of a special class `RsString` that extends `String`, rather than a primitive value. This is to enable colors for debug formatting inside the printing functions. This difference should not affect normal usage, but `rs.raw` can be used as an alternative tag to get a primitive `string`.
 
-The printing functions can be called with plain strings, instances of `String` or strings formatted with `rs`:
+The printing functions can be called with plain strings, instances of `String` or templates formatted with `rs`:
 
 ```ts
 println('Hello World');
@@ -74,21 +74,18 @@ The debug format specifier `?` uses `util.inspect` to stringify the parameter ra
  
 ```js
 let obj = { a: 1 };
-println(rs`${obj}`) // prints '[object Object]'
-println(rs`${obj}:?`) // prints '{ a: 1 }'
+println(rs`${obj}`);   // prints '[object Object]'
+println(rs`${obj}:?`); // prints '{ a: 1 }'
 ```
 
 The provided printing functions will display colors in the output of `util.inspect`, but otherwise it will be formatted without color.
 
-The specifiers `x`,`X`,`b`,`o`,`e`,`E`, `n`, `N` will convert a `number` or `bigint` parameter to:
-- `x`: lowercase hex
-- `X`: uppercase hex
+The specifiers `b`,`o`,`x`,`X`,`e`,`E`,`n`,`N` will convert a `number` or `bigint` parameter to:
 - `b`: binary 
 - `o`: octal 
-- `e`: lowercase scientific notation
-- `E`: uppercase scientific notation
-- `n`: lowercase ordinal suffixed string (rounded to integer)
-- `N`: uppercase ordinal suffixed string (rounded to integer)
+- `x`/`X`: lowercase/uppercase hexadecimal
+- `e`/`E`: lowercase/uppercase scientific notation
+- `n`/`N`: lowercase/uppercase ordinal suffixed string (rounded to integer)
 
 ```js
 let advancedInfo = (n) => rs`${n} is ${n}:x in hex, ${n}:b in binary and ${n}:o in octal`;
@@ -123,7 +120,7 @@ rs`${[1,2]}:.>${7}` // '....1,2'
 
 #### Pretty Printing
 
-In some instances (namely debug, binary, octal and hexadecimal formatting), adding a `#` before the format specifier will use an alternative 'pretty' printing style. This amounts to using non-compact `util.inspect` for debug printing (spanning multiple lines), and adding `0b`/`0o`/`0x` as a prefix for the numbers formatted as powers of two.
+In some instances (namely debug, binary, octal and hexadecimal formatting), adding a `#` before the format specifier will use an alternative 'pretty' printing style. This amounts to using multiline `util.inspect` for debug printing (spanning multiple lines), and adding `0b`/`0o`/`0x` as a prefix for the numbers in the respective bases.
 
 ```js
 rs`${255}:#X` // '0xFF'
@@ -151,3 +148,14 @@ Adding a `-` will instead add a space if the number is positive.
 rs`${1}:+` // '+1'
 rs`${1}:-` // ' 1'
 ```
+
+## Older versions of RSFormat
+
+Versions of RSFormat on npm prior to `1.0.0` provide formatting and printing functions that are more similar in syntax to Rust, using plain strings instead of tagged templates:
+
+```js
+import { format } from 'rsformat';
+format('{} is {0:#x} in hex', 15); // '15 is 0xf in hex'
+```
+
+See the `old` branch for more detailed documentation. The last version to use this formatting was `0.2.5`.
