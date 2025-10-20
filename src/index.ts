@@ -1,13 +1,9 @@
 import { buildString, RsString } from './format';
-
 export { print, println, eprint, eprintln } from './print';
-
 /**
  * Tag to use Rust-style formatting in a template literal.
  * Returns an extended `String` object. 
  * 
- * @param strings String parts of the template
- * @param params Template parameters
  * @returns a String object with the formatted string
  */
 export function rs(strings: TemplateStringsArray, ...params: any[]) {
@@ -17,8 +13,6 @@ export function rs(strings: TemplateStringsArray, ...params: any[]) {
  * Tag to use Rust-style formatting in a template literal.
  * Returns a `string` primitive.
  * 
- * @param strings String parts of the template
- * @param params Template parameters
  * @returns a string primitive of the formatted string
  */
 rs.raw = function (strings: TemplateStringsArray, ...params: any[]) {

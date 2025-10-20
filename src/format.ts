@@ -2,15 +2,12 @@ import { inspect } from 'node:util';
 
 const is_digit = (c: string) => c >= '0' && c <= '9';
 const error = (param: number, char: number, reason: string) => new Error(`rs[param ${param}, char ${char}] ${reason}`);
-
-let debugColors = false;
-export function setDebugColors(b: boolean) { debugColors = b };
-
 /**
  * Type representing a string formatted by `rs`.
  * An extension of `String`.
  */
 export class RsString extends String {
+    __debugColors: boolean = false;
     private cachedColor: string | null = null;
     private cachedPlain: string | null = null;
     private strings: TemplateStringsArray;
@@ -23,11 +20,11 @@ export class RsString extends String {
     }
 
     override toString(): string {
-        if (debugColors) {
-            if (this.cachedColor === null) this.cachedColor = buildString(this.strings, this.params);
+        if (this.__debugColors) {
+            if (this.cachedColor === null) this.cachedColor = buildString(this.strings, this.params, true);
             return this.cachedColor;
         } else {
-            if (this.cachedPlain === null) this.cachedPlain = buildString(this.strings, this.params);
+            if (this.cachedPlain === null) this.cachedPlain = buildString(this.strings, this.params, false);
             return this.cachedPlain;
         };
     }
@@ -35,7 +32,6 @@ export class RsString extends String {
         return this.toString();
     }
 }
-
 /**
  * Format a template literal with rust-style formatting and return it as a string.
  * 
@@ -43,7 +39,7 @@ export class RsString extends String {
  * @param params Template parameters
  * @returns a string primitive of the formatted string
  */
-export function buildString(strings: TemplateStringsArray, params: any[]): string {
+export function buildString(strings: TemplateStringsArray, params: any[], debugColors: boolean = false): string {
     let out = [strings[0]];
     for (let i = 1; i < strings.length; ++i) {
         let string = strings[i];
@@ -59,20 +55,19 @@ export function buildString(strings: TemplateStringsArray, params: any[]): strin
             param = params[param.__rs_param_ref];
         }
 
-        let format = parse_format_specifier(string, i - 1);
+        let format = parseFormatSpecifier(string, i - 1);
 
         if ('doNotFormat' in format) {
             out.push(param.toString() + string.substring(format.end));
             continue;
         }
 
-        let formatted = format_param(param, format, debugColors);
+        let formatted = formatParam(param, format, debugColors);
 
         out.push(formatted + string.substring(format.end));
     }
     return out.join('');
 }
-
 type DoNotFormat = { end: number, doNotFormat: true }
 type AlignDirection = '<' | '^' | '>';
 type FormatType = '?' | 'o' | 'x' | 'X' | 'b' | 'e' | 'E' | '';
@@ -87,7 +82,6 @@ type FormatSpecifier = {
     precision: number,
     type: FormatType;
 }
-
 /**
  * Parse a Rust-like format specifier in a string.
  * 
@@ -95,7 +89,7 @@ type FormatSpecifier = {
  * @param param_number Number parameter (used for reporting errors)
  * @returns A format specifier object 
  */
-export function parse_format_specifier(string: string, param_number: number = 0): DoNotFormat | FormatSpecifier {
+export function parseFormatSpecifier(string: string, param_number: number = 0): DoNotFormat | FormatSpecifier {
     // If the string starts with a single : it has a format specifier,
     // If it has two the first : is being escaped and can be removed
     if (string[0] == ':') {
@@ -184,7 +178,7 @@ export function parse_format_specifier(string: string, param_number: number = 0)
  * @param debugColors whether to use colors in debug formatting
  * @returns `param` as a formatted string
  */
-export function format_param(param: any, format: FormatSpecifier, debugColors: boolean): string {
+export function formatParam(param: any, format: FormatSpecifier, debugColors: boolean): string {
     let param_type = typeof param;
     let true_length = -1;
 

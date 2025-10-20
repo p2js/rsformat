@@ -1,4 +1,4 @@
-import { setDebugColors } from './format';
+import { RsString } from './format';
 import { Writable } from 'node:stream';
 import process from 'node:process';
 
@@ -11,15 +11,15 @@ import process from 'node:process';
  * @param colored Whether to use colors for `rs` debug formatting
  */
 export function printToStream(stream: Writable, string: string | String, newline: boolean = false, colored: boolean = false) {
-    if (string instanceof String) {
-        if (colored) setDebugColors(true);
-        string = string.toString();
-        setDebugColors(false);
+    if (string instanceof RsString) {
+        if (colored) string.__debugColors = true;
+        let stringified = string.toString();
+        string.__debugColors = false;
+        string = stringified;
     }
     if (newline) string = string + '\n';
     stream.write(string);
 }
-
 /**
  * Print a string to stdout.
  * 
