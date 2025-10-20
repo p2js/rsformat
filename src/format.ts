@@ -201,9 +201,10 @@ export function format_param(param: any, format: FormatSpecifier, debugColors: b
             }
             break;
         case '?':
-            // Do not force sign or align to precision when using inspect
-            format.force_sign = undefined;
-            format.precision = undefined;
+            // Do not force sign, pad with zeroes or align to precision when using debug formatting
+            format.force_sign = false;
+            format.pad_zeroes = false;
+            format.precision = -1;
             true_length = inspect(param, {
                 depth: Infinity,
                 colors: false,
@@ -230,6 +231,8 @@ export function format_param(param: any, format: FormatSpecifier, debugColors: b
             post = ((post || '') + '0'.repeat(format.precision)).slice(0, format.precision);
             param = pre + '.' + post;
         }
+        // Update true length for fill/align
+        true_length = param.length;
     }
 
     let filled = false;
@@ -266,9 +269,11 @@ export function format_param(param: any, format: FormatSpecifier, debugColors: b
             filled = true;
             while (param.length < format.width - maybe_sign.length) {
                 param = '0' + param;
+                true_length++;
             }
         }
 
+        true_length += maybe_sign.length;
         param = maybe_sign + param;
     }
     if (!filled && format.width > true_length) {
