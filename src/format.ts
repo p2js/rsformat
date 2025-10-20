@@ -112,9 +112,11 @@ export function fmt_raw(str: string, params: any[], options = { colors: false })
                     }
                     break;
                 case '?':
-                    // Do not force sign or align to precision when using inspect
+                    // Do not force sign, pad with zeroes or align to precision when using debug formatting
                     $sign = undefined;
+                    $pad_zeroes = undefined;
                     $precision = undefined;
+
                     true_length = inspect(param, {
                         depth: Infinity,
                         colors: false,
@@ -141,6 +143,8 @@ export function fmt_raw(str: string, params: any[], options = { colors: false })
                 } else {
                     post = ((post || '') + '0'.repeat(precision)).slice(0, precision);
                     param = pre + '.' + post;
+                    // Update true length for fill/align
+                    true_length = param.length;
                 }
             }
 
@@ -186,9 +190,11 @@ export function fmt_raw(str: string, params: any[], options = { colors: false })
                     filled = true;
                     while (param.length < width - maybe_sign.length) {
                         param = '0' + param;
+                        true_length++
                     }
                 }
 
+                true_length += maybe_sign.length;
                 param = maybe_sign + param;
             }
             if (!filled && width > true_length) {
