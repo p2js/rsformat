@@ -6,6 +6,10 @@ const error = (param: number, char: number, reason: string) => new Error(`rs[par
 let debugColors = false;
 export function setDebugColors(b: boolean) { debugColors = b };
 
+/**
+ * Type representing a string formatted by `rs`.
+ * An extension of `String`.
+ */
 export class RsString extends String {
     private cachedColor: string | null = null;
     private cachedPlain: string | null = null;
@@ -32,6 +36,13 @@ export class RsString extends String {
     }
 }
 
+/**
+ * Format a template literal with rust-style formatting and return it as a string.
+ * 
+ * @param strings String parts of the template
+ * @param params Template parameters
+ * @returns a string primitive of the formatted string
+ */
 export function buildString(strings: TemplateStringsArray, params: any[]): string {
     let out = [strings[0]];
     for (let i = 1; i < strings.length; ++i) {
@@ -77,7 +88,14 @@ type FormatSpecifier = {
     type: FormatType;
 }
 
-export function parse_format_specifier(string: string, param_number: number): DoNotFormat | FormatSpecifier {
+/**
+ * Parse a Rust-like format specifier in a string.
+ * 
+ * @param string String beginning with format specifier
+ * @param param_number Number parameter (used for reporting errors)
+ * @returns A format specifier object 
+ */
+export function parse_format_specifier(string: string, param_number: number = 0): DoNotFormat | FormatSpecifier {
     // If the string starts with a single : it has a format specifier,
     // If it has two the first : is being escaped and can be removed
     if (string[0] == ':') {
@@ -158,6 +176,14 @@ export function parse_format_specifier(string: string, param_number: number): Do
     };
 }
 
+/**
+ * Format a parameter as a string according to a specifier.
+ * 
+ * @param param parameter to format
+ * @param format format specifier object
+ * @param debugColors whether to use colors in debug formatting
+ * @returns `param` as a formatted string
+ */
 export function format_param(param: any, format: FormatSpecifier, debugColors: boolean): string {
     let param_type = typeof param;
     let true_length = -1;
