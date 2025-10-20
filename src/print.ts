@@ -1,6 +1,7 @@
 import { RsString } from './format';
 import { Writable } from 'node:stream';
 import process from 'node:process';
+import { rs } from '.';
 
 /**
  * Print a string (or instance of String/RsString) to a stream.
@@ -12,11 +13,12 @@ import process from 'node:process';
  */
 export function printToStream(stream: Writable, string: string | String, newline: boolean = false, colored: boolean = false) {
     if (string instanceof RsString) {
+        let previousColors = string.__debugColors;
         if (colored) string.__debugColors = true;
         let stringified = string.toString();
-        string.__debugColors = false;
+        string.__debugColors = previousColors;
         string = stringified;
-    }
+    } else if (string instanceof String) string = string.toString();
     if (newline) string = string + '\n';
     stream.write(string);
 }
@@ -51,4 +53,13 @@ export function eprint(string: string | String) {
  */
 export function eprintln(string: string | String) {
     printToStream(process.stderr, string, true, true);
+}
+/**
+ * Debug print a value to stderr and return it.
+ * 
+ * @param value Value to debug print
+ */
+export function dbg(value: any) {
+    eprintln(rs`${value}:?`);
+    return value;
 }

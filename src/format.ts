@@ -1,4 +1,4 @@
-import { inspect } from 'node:util';
+import util from 'node:util';
 
 const is_digit = (c: string) => c >= '0' && c <= '9';
 const error = (param: number, char: number, reason: string) => new Error(`rs[param ${param}, char ${char}] ${reason}`);
@@ -13,9 +13,14 @@ export class RsString extends String {
     private strings: TemplateStringsArray;
     private params: any[];
     constructor(strings: TemplateStringsArray, params: any[]) {
-        super('');
-        this.strings = strings;
-        this.params = params;
+        super('[use rs.raw to get string primitive]');
+        Object.defineProperties(this, {
+            strings: { value: strings, enumerable: false },
+            params: { value: params, enumerable: false },
+            cachedPlain: { value: null, writable: true, enumerable: false },
+            cachedColor: { value: null, writable: true, enumerable: false },
+            __debugColors: { value: false, writable: true, enumerable: false },
+        });
     }
     override toString(): string {
         if (this.__debugColors) {
@@ -214,12 +219,12 @@ export function formatParam(param: any, format: FormatSpecifier, debugColors: bo
             format.precision = -1;
             break;
         case '?':
-            true_length = inspect(param, {
+            true_length = util.inspect(param, {
                 depth: Infinity,
                 colors: false,
                 compact: !format.pretty
             }).length;
-            param = inspect(param, {
+            param = util.inspect(param, {
                 depth: Infinity,
                 colors: debugColors,
                 compact: !format.pretty
