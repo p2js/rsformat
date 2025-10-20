@@ -2,11 +2,23 @@
 
 RSFormat is a string formatting/printing library for JavaScript. It offers a minimal, yet powerful and flexible alternative to the string formatting and printing provided by `util.format` and `console.log`.
 
+```js
+import { rs, println } from 'rsformat';
+
+let s = rs`${15} is ${15}:#X in hex`;
+// s == '15 is 0xF in hex'
+
+println(rs`${'a'}:^5`);
+// Prints '  a  '
+```
+
 ## Motivation
 
-`console.log` is an odd method: its output can be affected by functions called before/after it (such as `console.group`), or their order affected by what parameters there are. For example, when calling `console.log(string, number)`, number can come either after or inside `string` depending on the value of `string`. This behaviour has largely been superseded at a language level by template literals, which allow formatting of parameters directly inside the templates, causing these methods to have unnecessary overhead and undesired behaviour.
+`console.log` is an odd method: its output can be affected by functions called before/after it (such as `console.group`), or their order affected by what parameters there are. For example, when calling `console.log(string, number)`, number can come either after or inside `string` depending on the value of `string`.
 
-RSFormat builds onto template literals by providing an additional formatting tag that implements Rust-style format specifiers, as well as lower-overhead printing functions for strings and format strings. Rust formatting includes a lot of convenient operators for formatting text, such as padding/alignment, printing numbers in a given base, specifying decimal precision, etc.
+This behaviour has largely been superseded at a language level by template literals, which allow formatting of parameters directly inside the templates, causing these methods to have unnecessary overhead and undesired behaviour.
+
+RSFormat builds onto template literals by implementing Rust-style format specifiers and lightweight printing functions. Rust formatting includes a lot of convenient operators for formatting text, such as padding/alignment, printing numbers in a given base, specifying decimal precision, etc.
 
 ## Usage
 
@@ -122,5 +134,4 @@ Adding a + to the formatting specifier will print the sign regardless of whether
 
 ```js
 rs`${1}:+` // '+1'
-format('{:+}', 1); // '+1'
 ```
