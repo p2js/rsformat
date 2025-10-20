@@ -1,87 +1,65 @@
+import { RsString } from './format';
 import { Writable } from 'node:stream';
 import process from 'node:process';
-import { fmt_raw } from './format';
+import { rs } from '.';
 
 /**
- * Create format printer functions with custom output/error streams.
+ * Print a string (or instance of String/RsString) to a stream.
  * 
- * @param outStream Output stream (used by print and println - process.stdout by default)
- * @param errStream Error stream (used by eprint and eprintln - process.stderr by default)
- * @param options Options for the printer functions (Whether to color the debug formatting in the output - true by default)
- * 
- * @returns an object with print, println, eprint and eprintln functions that print to the specified streams
+ * @param stream Stream to print the string to
+ * @param string String to print
+ * @param newline Whether to append a newline after the string 
+ * @param colored Whether to use colors for `rs` debug formatting
  */
-export function Printer(outStream: Writable = process.stdout, errStream: Writable = process.stderr, options = { debugColors: true }) {
-    return {
-        /**
-         * Print a format string to an output stream (usually process.stdout).
-         * 
-         * @param format_string String used for formatting
-         * @param params Parameters to be inserted into the format string
-         */
-        print: function print(format_string: string, ...params: any[]) {
-            outStream.write(fmt_raw(format_string, params, { colors: options.debugColors }));
-        },
-        /**
-         * Print a format string to an output stream (usually process.stdout)
-         * and append a newline.
-         * 
-         * @param format_string String used for formatting
-         * @param params Parameters to be inserted into the format string
-         */
-        println: function println(format_string: string, ...params: any[]) {
-            outStream.write(fmt_raw(format_string, params, { colors: options.debugColors }) + '\n');
-        },
-        /**
-         * Print a format string to an error stream (usually process.stderr).
-         * 
-         * @param format_string String used for formatting
-         * @param params Parameters to be inserted into the format string
-         */
-        eprint: function eprint(format_string: string, ...params: any[]) {
-            errStream.write(fmt_raw(format_string, params, { colors: options.debugColors }));
-        },
-        /**
-         * Print a format string to an error stream (usually process.stderr)
-         * and append a newline.
-         * 
-         * @param format_string String used for formatting
-         * @param params Parameters to be inserted into the format string
-         */
-        eprintln: function eprintln(format_string: string, ...params: any[]) {
-            errStream.write(fmt_raw(format_string, params, { colors: options.debugColors }) + '\n');
-        },
-    }
+export function printToStream(stream: Writable, string: string | String, newline: boolean = false, colored: boolean = false) {
+    if (string instanceof RsString) {
+        let previousColors = string.__debugColors;
+        if (colored) string.__debugColors = true;
+        let stringified = string.toString();
+        string.__debugColors = previousColors;
+        string = stringified;
+    } else if (string instanceof String) string = string.toString();
+    if (newline) string = string + '\n';
+    stream.write(string);
 }
-
-const default_printer = Printer();
 /**
- * Print a format string to process.stdout.
+ * Print a string to stdout.
  * 
- * @param format_string String used for formatting
- * @param params Parameters to be inserted into the format string
+ * @param string String to print
  */
-export const print = default_printer.print;
+export function print(string: string | String) {
+    printToStream(process.stdout, string, false, true);
+}
 /**
- * Print a format string to process.stdout
- * and append a newline.
+ * Print a string to stdout and append a newline.
  * 
- * @param format_string String used for formatting
- * @param params Parameters to be inserted into the format string
+ * @param string String to print
  */
-export const println = default_printer.println;
+export function println(string: string | String) {
+    printToStream(process.stdout, string, true, true);
+}
 /**
- * Print a format string to process.stderr.
+ * Print a string to stderr.
  * 
- * @param format_string String used for formatting
- * @param params Parameters to be inserted into the format string
+ * @param string String to print
  */
-export const eprint = default_printer.eprint;
+export function eprint(string: string | String) {
+    printToStream(process.stderr, string, false, true);
+}
 /**
- * Print a format string to process.stderr
- * and append a newline.
+ * Print a string to stderr and append a newline.
  * 
- * @param format_string String used for formatting
- * @param params Parameters to be inserted into the format string
+ * @param string String to print
  */
-export const eprintln = default_printer.eprintln;
+export function eprintln(string: string | String) {
+    printToStream(process.stderr, string, true, true);
+}
+/**
+ * Debug print a value to stderr and return it.
+ * 
+ * @param value Value to debug print
+ */
+export function dbg(value: any) {
+    eprintln(rs`${value}:?`);
+    return value;
+}
