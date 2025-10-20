@@ -60,7 +60,7 @@ This implementation differs from the Rust one in a few ways:
 - Rather than escaping the braces using `{{` or `}}`, the formatting colon can be escaped using `::`.
 - Different parameters are referenced using `rs.ref(n)` rather than the number literal `n`.
 - To separate a formatting specifier from the rest of the string without adding a space, an extra closing colon must be added (eg. `:#?:foo` - specifier gets parsed as `:#?`)
-- The `-` sign (unused in Rust) is unsupported.
+- The `-` sign (unused in Rust) will add a space if the number is positive to align it with negative numbers without showing a `+`.
 - Pointer format type `p` is unsupported.
 - Hexadecimal debug types `x?` and `X?` are unsupported. 
 - Specifying precision dynamically with `*` is unsupported. Instead, precision and width can both be specified dynamically by using a separate number parameter in place of the number.
@@ -144,8 +144,10 @@ rs`${1.23456789}:.3` // '1.234'
 rs`${-1}:.${3}`      // '-1.000'
 ```
 
-Adding a + to the formatting specifier will print the sign regardless of whether the number is negative.
+Adding a `+` to the formatting specifier will print the sign regardless of whether the number is negative.
+Adding a `-` will instead add a space if the number is positive.
 
 ```js
 rs`${1}:+` // '+1'
+rs`${1}:-` // ' 1'
 ```

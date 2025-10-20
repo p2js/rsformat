@@ -69,7 +69,7 @@ export function buildString(strings: TemplateStringsArray, params: any[], debugC
         // Compute format based on string
         let fill = ' ',
             align = '>' as AlignDirection,
-            force_sign = false,
+            force_sign = '' as Sign,
             pretty = false,
             pad_zeroes = false,
             width = 0,
@@ -84,7 +84,7 @@ export function buildString(strings: TemplateStringsArray, params: any[], debugC
             align = string[idx++] as AlignDirection;
         }
         // Force sign
-        if (string[idx] == '+') force_sign = true, idx++;
+        if (string[idx] == '+' || string[idx] == '-') force_sign = string[idx++] as Sign;
         // Pretty formatting
         if (string[idx] == '#') pretty = true, idx++;
         // Padding numbers with zeroes
@@ -151,11 +151,12 @@ export function buildString(strings: TemplateStringsArray, params: any[], debugC
 }
 
 type AlignDirection = '<' | '^' | '>';
+type Sign = '-' | '+' | '';
 type FormatType = '?' | 'o' | 'x' | 'X' | 'b' | 'e' | 'E' | 'n' | 'N' | '';
 type FormatSpecifier = {
     fill: string,
     align: AlignDirection,
-    force_sign: boolean,
+    force_sign: Sign,
     pretty: boolean,
     pad_zeroes: boolean,
     width: number,
@@ -250,8 +251,10 @@ export function formatParam(param: any, format: FormatSpecifier, debugColors: bo
         let maybe_sign = (param as string).substring(0, 1);
         if (maybe_sign === '-') {
             param = (param as string).substring(1, param.length);
-        } else if (format.force_sign) {
+        } else if (format.force_sign == '+') {
             maybe_sign = '+';
+        } else if (format.force_sign == '-') {
+            maybe_sign = ' ';
         } else {
             maybe_sign = '';
         }
