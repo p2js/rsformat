@@ -1,5 +1,5 @@
 import { buildString, RsString } from './format';
-export { print, println, eprint, eprintln } from './print';
+export { print, println, eprint, eprintln, dbg } from './print';
 /**
  * Tag to use Rust-style formatting in a template literal.
  * Returns an extended `String` object. 

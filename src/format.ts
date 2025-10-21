@@ -121,8 +121,12 @@ export function buildString(strings: TemplateStringsArray, params: any[]): { raw
         // End of specifier
         if (string[idx] == ':') {
             idx++;
-        } else if (string[idx] != ' ' && string[idx] !== undefined) {
-            throw error(i - 1, idx, `Expected colon (':') or space (' ') at end of formatting specifier (found '${string[idx]}')`);
+        } else if (string[idx] != ' '
+            && string[idx] != '\t'
+            && string[idx] != '\r'
+            && string[idx] != '\n'
+            && string[idx] !== undefined) {
+            throw error(i - 1, idx, `Expected colon (':') or space character (' '/'\\t'/'\\r'/'\\n') at end of formatting specifier (found '${string[idx]}')`);
         }
 
         // Format parameter according to specifier
