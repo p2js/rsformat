@@ -7,43 +7,30 @@ const error = (param: number, char: number, reason: string) => new Error(`rs[par
  * An extension of `String`.
  */
 export class RsString extends String {
-    __debugColors: boolean = false;
-    private cachedColor: string | null = null;
-    private cachedPlain: string | null = null;
-    private strings: TemplateStringsArray;
-    private params: any[];
+    /**
+     * A version of the string that includes ANSI escape codes for debug formatting.
+     */
+    colored: string
     constructor(strings: TemplateStringsArray, params: any[]) {
-        super('[use rs.raw to get string primitive]');
-        Object.defineProperties(this, {
-            strings: { value: strings, enumerable: false },
-            params: { value: params, enumerable: false },
-            cachedPlain: { value: null, writable: true, enumerable: false },
-            cachedColor: { value: null, writable: true, enumerable: false },
-            __debugColors: { value: false, writable: true, enumerable: false },
-        });
+        let { raw, colored } = buildString(strings, params);
+        super(raw);
+        this.colored = colored;
     }
-    override toString(): string {
-        if (this.__debugColors) {
-            if (this.cachedColor === null) this.cachedColor = buildString(this.strings, this.params, true);
-            return this.cachedColor;
-        } else {
-            if (this.cachedPlain === null) this.cachedPlain = buildString(this.strings, this.params, false);
-            return this.cachedPlain;
-        };
-    }
-    override valueOf(): string {
-        return this.toString();
+    override toString(debugColors: boolean = false): string {
+        if (debugColors) return this.colored;
+        return this.valueOf();
     }
 }
 /**
- * Format a template literal with rust-style formatting and return it as a string.
+ * Format a template literal with rust-style formatting and return it as a raw and colored string.
  * 
  * @param strings String parts of the template
  * @param params Template parameters
- * @returns a string primitive of the formatted string
+ * 
+ * @returns An object with raw and colored versions of the formatted parameter
  */
-export function buildString(strings: TemplateStringsArray, params: any[], debugColors: boolean = false): string {
-    let out = [strings[0]];
+export function buildString(strings: TemplateStringsArray, params: any[]): { raw: string, colored: string } {
+    let out = strings[0];
     for (let i = 1; i < strings.length; ++i) {
         let string = strings[i];
         let param = params[i - 1];
@@ -62,11 +49,11 @@ export function buildString(strings: TemplateStringsArray, params: any[], debugC
         // If it has two the first : is being escaped and can be removed
         if (string[0] == ':') {
             if (string[1] == ':') {
-                out.push(param.toString() + string.substring(1));
+                out += param.toString() + string.substring(1);
                 continue;
             }
         } else {
-            out.push(param.toString() + string);
+            out += param.toString() + string;
             continue;
         };
         // Keep track of our index in the string to slice the format specifier later
@@ -148,11 +135,11 @@ export function buildString(strings: TemplateStringsArray, params: any[], debugC
             width,
             precision,
             type: format_type
-        }, debugColors);
-
-        out.push(formatted + string.substring(idx));
+        });
+        out += formatted + string.substring(idx);
     }
-    return out.join('');
+
+    return { raw: util.stripVTControlCharacters(out), colored: out };
 }
 
 type AlignDirection = '<' | '^' | '>';
@@ -170,15 +157,15 @@ type FormatSpecifier = {
 }
 /**
  * Format a parameter as a string according to a specifier.
+ * Will include colors in the output of debug formating
  * 
  * @param param parameter to format
  * @param format format specifier object
  * @param debugColors whether to use colors in debug formatting
  * @returns `param` as a formatted string
  */
-export function formatParam(param: any, format: FormatSpecifier, debugColors: boolean): string {
+export function formatParam(param: any, format: FormatSpecifier): string {
     let param_type = typeof param;
-    let true_length = -1;
 
     // Process parameter type
     switch (format.type) {
@@ -219,14 +206,9 @@ export function formatParam(param: any, format: FormatSpecifier, debugColors: bo
             format.precision = -1;
             break;
         case '?':
-            true_length = util.inspect(param, {
-                depth: Infinity,
-                colors: false,
-                compact: !format.pretty
-            }).length;
             param = util.inspect(param, {
                 depth: Infinity,
-                colors: debugColors,
+                colors: true,
                 compact: !format.pretty
             });
             // Do not force sign, pad with zeroes or align to precision when using debug formatting
@@ -234,9 +216,6 @@ export function formatParam(param: any, format: FormatSpecifier, debugColors: bo
             break;
         default: param = param.toString(); break;
     };
-    if (true_length == -1) {
-        true_length = param.length;
-    }
     // Compute radix-point precision on numbers
     if (param_type == 'number' && format.precision != -1) {
         let [pre, post] = (param as string).split('.');
@@ -246,11 +225,9 @@ export function formatParam(param: any, format: FormatSpecifier, debugColors: bo
             post = ((post || '') + '0'.repeat(format.precision)).slice(0, format.precision);
             param = pre + '.' + post;
         }
-        // Update true length for fill/align
-        true_length = param.length;
     }
 
-    let filled = false;
+    // let filled = false;
     if ((param_type == 'number') || (param_type == 'bigint')) {
         // Compute parameter sign
         let maybe_sign = (param as string).substring(0, 1);
@@ -280,20 +257,18 @@ export function formatParam(param: any, format: FormatSpecifier, debugColors: bo
         }
         //pad with zeroes if specified  
         if (format.pad_zeroes) {
-            filled = true;
+            // filled = true;
             while (param.length < format.width - maybe_sign.length) {
                 param = '0' + param;
-                true_length++;
             }
         }
-        true_length += maybe_sign.length;
         param = maybe_sign + param;
     }
-    if (!filled && format.width > true_length) {
+    if (/*!filled && */ format.width > param.length) {
         // Compute fill/align
         let left = '';
         let right = '';
-        let diff = format.width - true_length;
+        let diff = format.width - param.length;
 
         switch (format.align) {
             case '>': left = format.fill.repeat(diff); break;

@@ -12,13 +12,9 @@ import { rs } from '.';
  * @param colored Whether to use colors for `rs` debug formatting
  */
 export function printToStream(stream: Writable, string: string | String, newline: boolean = false, colored: boolean = false) {
-    if (string instanceof RsString) {
-        let previousColors = string.__debugColors;
-        if (colored) string.__debugColors = true;
-        let stringified = string.toString();
-        string.__debugColors = previousColors;
-        string = stringified;
-    } else if (string instanceof String) string = string.toString();
+    if (string instanceof String) {
+        string = (string as RsString).toString(true);
+    }
     if (newline) string = string + '\n';
     stream.write(string);
 }

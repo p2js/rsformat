@@ -31,23 +31,25 @@ npm install rsformat
 ### Basic formatting and printing to console
 
 The `rs` template tag can be used to enable rust-style formatting in a template.
-To reference a previous or following argument, use `rs.ref` with the parameter number.
+
+To reference a previous or following argument, use `rs.ref` with the argument number. This is useful if you want to reuse a complicated expression without having to declare it separately.
 
 ```js
 import { rs, println } from 'rsformat';      // ESM
 const { rs, println } = require('rsformat'); // CommonJS
 
-let number = 15;
+let number = 14;
 
-let info = rs`${number} is ${rs.ref(0)}:x in hex`; // info == '15 is f in hex'
+let info = rs`${number+1} is ${rs.ref(0)}:x in hex`; // info == '15 is f in hex'
 ```
 
-> NB: templates tagged with `rs` are instances of a special class `RsString` that extends `String`, rather than a primitive value. This is to enable colors for debug formatting inside the printing functions. This difference should not affect normal usage, but `rs.raw` can be used as an alternative tag to get a primitive `string`.
+> NB: templates tagged with `rs` are instances of a special class `RsString` that extends `String`, rather than a primitive value. This is to enable colors for debug formatting inside the printing functions. This difference should not affect normal usage, but `rs.raw` can be used as an alternative tag to get a primitive `string` with ANSI control characters escaped.
 
 The printing functions can be called with plain strings, instances of `String` or templates formatted with `rs`:
 
 ```ts
 println('Hello World');
+println(`This template did ${'Not'} need fancy formatting`);
 println(rs`...`);
 ```
 

@@ -16,7 +16,7 @@ export function rs(strings: TemplateStringsArray, ...params: any[]) {
  * @returns a string primitive of the formatted string
  */
 rs.raw = function (strings: TemplateStringsArray, ...params: any[]) {
-    return buildString(strings, params);
+    return buildString(strings, params).raw;
 }
 /**
  * Reference another parameter in a `rs`-tagged template.
