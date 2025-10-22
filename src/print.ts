@@ -1,10 +1,10 @@
-import { RsString } from './format';
-import { Writable } from 'node:stream';
+import type { RsString } from './format';
+import type { Writable } from 'node:stream';
 import process from 'node:process';
 import { rs } from '.';
 
 /**
- * Print a string (or instance of String/RsString) to a stream.
+ * Print a string (or instance of String/RsString) to a `Writable` stream.
  * 
  * @param stream Stream to print the string to
  * @param string String to print
@@ -52,6 +52,13 @@ export function eprintln(string: string | String) {
 }
 /**
  * Debug print a value to stderr and return it.
+ * 
+ * ```js
+ * let r = Math.random();
+ * if(dbg(r < 0.3)) { // prints 'true' or 'false'
+ *     println("Unlucky!");
+ * }
+ * ```
  * 
  * @param value Value to debug print
  */

@@ -171,11 +171,10 @@ type FormatSpecifier = {
 }
 /**
  * Format a parameter as a string according to a specifier.
- * Will include colors in the output of debug formating
+ * Will include colors in the output of debug formating.
  * 
  * @param param parameter to format
  * @param format format specifier object
- * @param debugColors whether to use colors in debug formatting
  * @returns `param` as a formatted string
  */
 export function formatParam(param: any, format: FormatSpecifier): string {
