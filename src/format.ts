@@ -29,8 +29,9 @@ export class RsString extends String {
  * 
  * @returns An object with raw and colored versions of the formatted parameter
  */
-export function buildString(strings: TemplateStringsArray, params: any[]): { raw: string, colored: string } {
-    let out = strings[0];
+export function buildString(strings: TemplateStringsArray, params: any[]) {
+    let raw = strings[0];
+    let colored = strings[0];
     for (let i = 1; i < strings.length; ++i) {
         let string = strings[i];
         let param = params[i - 1];
@@ -38,7 +39,9 @@ export function buildString(strings: TemplateStringsArray, params: any[]): { raw
         while (typeof param == 'object' && '__rs_param_ref' in param) {
             let ref_number = param.__rs_param_ref;
             if (typeof ref_number != 'number'
-                || ref_number < 0 || ref_number >= params.length) {
+                || ref_number < 0
+                || ref_number >= params.length
+                || !Number.isInteger(ref_number)) {
                 throw new Error(`Parameter ${i - 1}: Invalid reference`);
             }
             if (ref_number == i - 1) throw new Error(`Parameter ${i - 1} references itself recursively`);
@@ -49,11 +52,15 @@ export function buildString(strings: TemplateStringsArray, params: any[]): { raw
         // If it has two the first : is being escaped and can be removed
         if (string[0] == ':') {
             if (string[1] == ':') {
-                out += param.toString() + string.substring(1);
+                let stringified = param.toString() + string.substring(1);
+                raw += stringified;
+                colored += stringified;
                 continue;
             }
         } else {
-            out += param.toString() + string;
+            let stringified = param.toString() + string;
+            raw += stringified;
+            colored += stringified;
             continue;
         };
         // Keep track of our index in the string to slice the format specifier later
@@ -140,10 +147,13 @@ export function buildString(strings: TemplateStringsArray, params: any[]): { raw
             precision,
             type: format_type
         });
-        out += formatted + string.substring(idx);
+        let escaped_string = string.substring(idx);
+        colored += formatted + escaped_string;
+        if (format_type == '?') formatted = util.stripVTControlCharacters(formatted);
+        raw += formatted + escaped_string;
     }
 
-    return { raw: util.stripVTControlCharacters(out), colored: out };
+    return { raw, colored };
 }
 
 type AlignDirection = '<' | '^' | '>';

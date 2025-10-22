@@ -43,7 +43,7 @@ let number = 14;
 let info = rs`${number+1} is ${rs.ref(0)}:x in hex`; // info == '15 is f in hex'
 ```
 
-> NB: templates tagged with `rs` are instances of a special class `RsString` that extends `String`, rather than a primitive value. This is to enable colors for debug formatting inside the printing functions. This difference should not affect normal usage, but `rs.raw` can be used as an alternative tag to get a primitive `string` with ANSI control characters escaped.
+> NB: templates tagged with `rs` are instances of a special class `RsString` that extends `String`, rather than a primitive value. This is to enable colors for debug formatting inside the printing functions. This difference should not affect normal usage, but `rs.raw` can be used as an alternative tag to get a primitive `string`.
 
 The printing functions can be called with plain strings, instances of `String` or templates formatted with `rs`:
 
