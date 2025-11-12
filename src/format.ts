@@ -137,7 +137,7 @@ export function buildString(strings: TemplateStringsArray, params: any[]) {
         }
 
         // Format parameter according to specifier
-        let formatted = formatParam(param, {
+        let [formatted_colored, formatted_raw] = formatParam(param, {
             fill,
             align,
             force_sign,
@@ -148,9 +148,8 @@ export function buildString(strings: TemplateStringsArray, params: any[]) {
             type: format_type
         });
         let escaped_string = string.substring(idx);
-        colored += formatted + escaped_string;
-        if (format_type == '?') formatted = util.stripVTControlCharacters(formatted);
-        raw += formatted + escaped_string;
+        colored += formatted_colored + escaped_string;
+        raw += formatted_raw + escaped_string;
     }
 
     return { raw, colored };
@@ -175,10 +174,11 @@ type FormatSpecifier = {
  * 
  * @param param parameter to format
  * @param format format specifier object
- * @returns `param` as a formatted string
+ * @returns `param` as a debug-colored and raw formatted string
  */
-export function formatParam(param: any, format: FormatSpecifier): string {
+export function formatParam(param: any, format: FormatSpecifier): [string, string] {
     let param_type = typeof param;
+    let param_colored = "";
 
     // Process parameter type
     switch (format.type) {
@@ -219,11 +219,12 @@ export function formatParam(param: any, format: FormatSpecifier): string {
             format.precision = -1;
             break;
         case '?':
-            param = util.inspect(param, {
+            param_colored = util.inspect(param, {
                 depth: Infinity,
                 colors: true,
                 compact: !format.pretty
             });
+            param = util.stripVTControlCharacters(param_colored);
             // Do not force sign, pad with zeroes or align to precision when using debug formatting
             param_type = 'string';
             break;
@@ -277,7 +278,9 @@ export function formatParam(param: any, format: FormatSpecifier): string {
         }
         param = maybe_sign + param;
     }
-    if (/*!filled && */ format.width > param.length) {
+
+    if (param_colored == "") param_colored = param;
+    if (format.width > param.length) {
         // Compute fill/align
         let left = '';
         let right = '';
@@ -293,6 +296,8 @@ export function formatParam(param: any, format: FormatSpecifier): string {
                 break;
         }
         param = left + param + right;
+        param_colored = left + param_colored + right;
     }
-    return param;
+
+    return [param_colored, param];
 }
