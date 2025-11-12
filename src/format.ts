@@ -50,17 +50,17 @@ export function buildString(strings: TemplateStringsArray, params: any[]) {
         // Parse format specifier
         // If the string starts with a single : it has a format specifier,
         // If it has two the first : is being escaped and can be removed
+        let skipParsing = false;
         if (string[0] == ':') {
             if (string[1] == ':') {
-                let stringified = param.toString() + string.substring(1);
-                raw += stringified;
-                colored += stringified;
-                continue;
+                string = string.substring(1);
+                skipParsing = true;
             }
-        } else {
-            let stringified = param.toString() + string;
-            raw += stringified;
-            colored += stringified;
+        } else skipParsing = true;
+
+        if (skipParsing) {
+            raw += param.toString(param instanceof String ? false : undefined) + string;
+            colored += param.toString(param instanceof String ? true : undefined) + string;
             continue;
         };
         // Keep track of our index in the string to slice the format specifier later
@@ -170,7 +170,6 @@ type FormatSpecifier = {
 }
 /**
  * Format a parameter as a string according to a specifier.
- * Will include colors in the output of debug formating.
  * 
  * @param param parameter to format
  * @param format format specifier object
@@ -180,8 +179,13 @@ export function formatParam(param: any, format: FormatSpecifier): [string, strin
     let param_type = typeof param;
     let param_colored = "";
 
-    // Process parameter type
-    switch (format.type) {
+    // embed RsStrings directly
+    if (param instanceof String && format.type != '?') {
+        console.log("rsString passed");
+        param_colored = (param as RsString).toString(true);
+        param = (param as RsString).toString(false);
+    } else switch (format.type) {
+        // Process format type
         case 'o': param = param.toString(8); break;
         case 'x': param = param.toString(16); break;
         case 'X': param = param.toString(16).toUpperCase(); break;

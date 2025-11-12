@@ -13,7 +13,7 @@ import { rs } from '.';
  */
 export function printToStream(stream: Writable, string: string | String, newline: boolean = false, colored: boolean = false) {
     if (string instanceof String) {
-        string = (string as RsString).toString(true);
+        string = (string as RsString).toString(colored);
     }
     if (newline) string = string + '\n';
     stream.write(string);
