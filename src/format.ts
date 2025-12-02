@@ -181,7 +181,6 @@ export function formatParam(param: any, format: FormatSpecifier): [string, strin
 
     // embed RsStrings directly
     if (param instanceof String && format.type != '?') {
-        console.log("rsString passed");
         param_colored = (param as RsString).toString(true);
         param = (param as RsString).toString(false);
     } else switch (format.type) {
