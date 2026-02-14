@@ -63,6 +63,6 @@ export function eprintln(string: string | String) {
  * @param value Value to debug print
  */
 export function dbg(value: any) {
-    eprintln(rs`${value}:?`);
+    eprintln(rs`${value}:#?`);
     return value;
 }

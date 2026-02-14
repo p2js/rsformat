@@ -230,9 +230,15 @@ export function formatParam(param: any, format: FormatSpecifier): [string, strin
             param = util.stripVTControlCharacters(param_colored);
             // Do not force sign, pad with zeroes or align to precision when using debug formatting
             param_type = 'string';
+            format.force_sign = '';
             break;
         default: param = param.toString(); break;
     };
+
+    if (param_type == 'string' && format.force_sign != '') {
+        param = format.force_sign == '+' ? param.toUpperCase() : param.toLowercase();
+    }
+
     // Compute radix-point precision on numbers
     if (param_type == 'number' && format.precision != -1) {
         let [pre, post] = (param as string).split('.');
