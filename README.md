@@ -12,6 +12,19 @@ println(rs`${'a'}:^5`);
 // Prints '  a  '
 ```
 
+## Table of Contents
+
+- [Motivation](#motivation)
+- [Usage](#usage)
+    - [Basic formatting and printing to console](#basic-formatting-and-printing-to-console)
+    - [Format specifiers](#format-specifiers)
+        - [Different formatting types](#different-formatting-types)
+        - [Padding, Alignment](#padding-alignment)
+        - [Pretty printing with `#`](#pretty-printing-with-)
+        - [Specific number formatting](#specific-number-formatting)
+        - [Specific string formatting](#specific-string-formatting)
+- [Older versions of RSFormat](#older-versions-of-rsformat)
+
 ## Motivation
 
 `console.log` is an odd method: its output can be affected by functions called before/after it (such as `console.group`), or their order affected by what parameters there are. For example, when calling `console.log(string, number)`, number can come either after or inside `string` depending on the value of `string`.
@@ -55,21 +68,9 @@ println(rs`...`);
 
 ### Format Specifiers
 
-Format specifiers can be used by adding a `:` after the format argument, and will format the value differently inside the string. See `docs.md` for more detailed information on format specifiers.
+Format specifiers can be used by adding a `:` after the format argument, and will format the value differently inside the string. 
 
-This implementation differs from the Rust one in a few ways:
-
-- Rather than escaping the braces using `{{` or `}}`, the formatting colon can be escaped using `::`.
-- Different parameters are referenced using `rs.ref(n)` rather than the number literal `n`.
-- To separate a formatting specifier from the rest of the string without adding a space, an extra closing colon must be added (eg. `:#?:foo` - specifier gets parsed as `:#?`)
-- The `-` sign (unused in Rust) will add a space if the number is positive to align it with negative numbers without showing a `+`.
-- When used on strings, `+` and `-` sign specifiers will conver them to uppercase and lowercase respectively
-- Pointer format type `p` is unsupported.
-- Hexadecimal debug types `x?` and `X?` are unsupported. 
-- Specifying precision dynamically with `*` is unsupported. Instead, precision and width can both be specified dynamically by using a separate number parameter in place of the number.
-- New format types have been added:
-    - `N` for uppercase ordinal suffixing of numbers (rounded to integers)
-    - `n` for lowercase ordinal suffixing of numbers (rounded to integers)
+See `docs.md` for a detailed yet quick reference for format specifiers.
 
 #### Different formatting types
 
@@ -121,7 +122,7 @@ for(let value of pyramidLevels) {
 rs`${[1,2]}:.>${7}` // '....1,2'
 ```
 
-#### Pretty Printing
+#### Pretty printing with `#`
 
 In some instances (namely debug, binary, octal and hexadecimal formatting), adding a `#` before the format specifier will use an alternative 'pretty' printing style. This amounts to using multiline `util.inspect` for debug printing (spanning multiple lines), and adding `0b`/`0o`/`0x` as a prefix for the numbers in the respective bases.
 
@@ -129,7 +130,7 @@ In some instances (namely debug, binary, octal and hexadecimal formatting), addi
 rs`${255}:#X` // '0xFF'
 ```
 
-#### Specific Number Formatting
+#### Specific number formatting
 
 Specifically for `number` and `bigint` values, a `0` can be placed before the width to pad the number with zeroes instead. This will account for signs and possible formatting differences.
 
