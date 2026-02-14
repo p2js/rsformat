@@ -55,7 +55,7 @@ println(rs`...`);
 
 ### Format Specifiers
 
-Format specifiers can be used by adding `:` after the format argument, and will format the value differently inside the string. See the [rust format docs](https://doc.rust-lang.org/std/fmt/) for more detailed information on format specifiers.
+Format specifiers can be used by adding a `:` after the format argument, and will format the value differently inside the string. See `docs.md` for more detailed information on format specifiers.
 
 This implementation differs from the Rust one in a few ways:
 
@@ -63,6 +63,7 @@ This implementation differs from the Rust one in a few ways:
 - Different parameters are referenced using `rs.ref(n)` rather than the number literal `n`.
 - To separate a formatting specifier from the rest of the string without adding a space, an extra closing colon must be added (eg. `:#?:foo` - specifier gets parsed as `:#?`)
 - The `-` sign (unused in Rust) will add a space if the number is positive to align it with negative numbers without showing a `+`.
+- When used on strings, `+` and `-` sign specifiers will conver them to uppercase and lowercase respectively
 - Pointer format type `p` is unsupported.
 - Hexadecimal debug types `x?` and `X?` are unsupported. 
 - Specifying precision dynamically with `*` is unsupported. Instead, precision and width can both be specified dynamically by using a separate number parameter in place of the number.
@@ -149,6 +150,16 @@ Adding a `-` will instead add a space if the number is positive.
 ```js
 rs`${1}:+` // '+1'
 rs`${1}:-` // ' 1'
+```
+
+#### String formatting
+
+Adding a `+` or `-` to a formatting specifier of a string will instead convert it to uppercase or lowercase respectively.
+
+```js
+let str  = "Hello!"
+let str_upper = rs`${str}:+` // 'HELLO!'
+let str_lower = rs`${str}:-` // 'hello!'
 ```
 
 ## Older versions of RSFormat

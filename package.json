@@ -1,10 +1,11 @@
 {
   "name": "rsformat",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Formatting/printing library for JavaScript that takes after rust's string formatting ",
   "files": [
     "lib",
-    "README.MD"
+    "README.md",
+    "docs.md"
   ],
   "exports": {
     ".": {
