@@ -18,9 +18,12 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "prepublish": "pnpm build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "pnpm exec tsc",
+    "build:test": "pnpm exec tsc -p tsconfig.test.json",
+    "prepare": "pnpm build",
+    "pretest": "pnpm build && pnpm build:test",
+    "test": "npx jest test-build",
+    "posttest": "rm -r test-build"
   },
   "keywords": [
     "fmt",
@@ -36,7 +39,10 @@
   "author": "Alfio (https://github.com/p2js)",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^22.8.6"
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.8.6",
+    "jest": "^30.2.0",
+    "typescript": "^5.9.3"
   },
   "packageManager": "pnpm@9.14.2+sha512.6e2baf77d06b9362294152c851c4f278ede37ab1eba3a55fda317a4a17b209f4dbb973fb250a77abc463a341fcb1f17f17cfa24091c4eb319cda0d9b84278387"
 }

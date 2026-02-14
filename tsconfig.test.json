@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "moduleResolution": "NodeNext",
+        "module": "nodeNext",
+        "rootDir": ".",
+        "lib": [
+            "ESNext"
+        ],
+        "outDir": "./test-build",
+    },
+    "include": [
+        "test/**/*.ts"
+    ]
+}
