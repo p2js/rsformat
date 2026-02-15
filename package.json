@@ -20,9 +20,9 @@
   "scripts": {
     "build": "pnpm exec tsc",
     "build:test": "pnpm exec tsc -p tsconfig.test.json",
-    "prepare": "pnpm build",
+    "prepublishOnly": "pnpm build",
     "pretest": "pnpm build && pnpm build:test",
-    "test": "npx jest test-build",
+    "test": "pnpm exec jest test-build",
     "posttest": "rm -r test-build"
   },
   "keywords": [
