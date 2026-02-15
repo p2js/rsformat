@@ -23,6 +23,7 @@ println(rs`${'a'}:^5`);
         - [Pretty printing with `#`](#pretty-printing-with-)
         - [Specific number formatting](#specific-number-formatting)
         - [Specific string formatting](#specific-string-formatting)
+    - [Formatting without `rs`](#formatting-strings-without-rs)
 - [Older versions of RSFormat](#older-versions-of-rsformat)
 
 ## Motivation
@@ -56,7 +57,7 @@ let number = 14;
 let info = rs`${number+1} is ${rs.ref(0)}:x in hex`; // info == '15 is f in hex'
 ```
 
-> NB: templates tagged with `rs` are instances of a special class `RsString` that extends `String`, rather than a primitive value. This is to enable colors for debug formatting inside the printing functions. This difference should not affect normal usage, but `rs.raw` can be used as an alternative tag to get a primitive `string`.
+> NB: templates tagged with `rs` are instances of a special class `RsString` that extends `String`, rather than a primitive value. This is to enable colours for debug formatting inside the printing functions. This difference should not affect normal usage, but `rs.raw` can be used as an alternative tag to get a primitive `string`.
 
 The printing functions can be called with plain strings, instances of `String` or templates formatted with `rs`:
 
@@ -70,7 +71,7 @@ println(rs`...`);
 
 Format specifiers can be used by adding a `:` after the format argument, and will format the value differently inside the string. 
 
-See `docs.md` for a detailed yet quick reference for format specifiers.
+See [docs.md](./docs.md) for a detailed yet quick reference for format specifiers.
 
 #### Different formatting types
 
@@ -82,7 +83,7 @@ println(rs`${obj}`);   // prints '[object Object]'
 println(rs`${obj}:?`); // prints '{ a: 1 }'
 ```
 
-The provided printing functions will display colors in the output of `util.inspect`, but otherwise it will be formatted without color.
+The provided printing functions will display colours in the output of `util.inspect`, but otherwise it will be formatted without colour.
 
 The specifiers `b`,`o`,`x`,`X`,`e`,`E`,`n`,`N` will convert a `number` or `bigint` parameter to:
 - `b`: binary 
@@ -116,10 +117,17 @@ let pyramidLevels = ['a', 'aaa', 'aaaaa'];
 for(let value of pyramidLevels) {
     println(rs`${value}:^5`);
 }
+
+// More powerful equivalent:
+const character = 'a';
+const baseWidth = 5;
+for(let width = 1; width <= baseWidth; width += 2) {
+    println(rs`${character.repeat(width)}:^${baseWidth}`);
+}
 ```
 
 ```js
-rs`${[1,2]}:.>${7}` // '....1,2'
+rs`${[1,2]}:.>7` // '....1,2'
 ```
 
 #### Pretty printing with `#`
@@ -135,7 +143,7 @@ rs`${255}:#X` // '0xFF'
 Specifically for `number` and `bigint` values, a `0` can be placed before the width to pad the number with zeroes instead. This will account for signs and possible formatting differences.
 
 ```js
-rs`${15}:#07x` // '0x0000F'
+rs`${15}:#07x` // '0x0000f'
 ```
 
 Decimal precision can be specified for numbers by adding a `.` and specifying an integer for precision. An additional parameter can also be provided to do this dynamically.
@@ -161,6 +169,30 @@ Adding a `+` or `-` to a formatting specifier of a string will instead convert i
 let str  = "Hello!"
 let str_upper = rs`${str}:+` // 'HELLO!'
 let str_lower = rs`${str}:-` // 'hello!'
+```
+
+## Formatting without `rs`
+
+If you want to format a single value without using an `rs` template, you can use the `formatParam` function. It provides a more explicit, object‑based API and avoids parsing format specifiers.
+
+> NB: formatParam returns an array with the raw and debug-colored string at indices `0` and `1` respectively.
+
+```ts
+import { formatParam } from "rsformat/format";
+
+// Equivalent to `${255}:+#09X` or `${255}:<+#09.0X`
+let [ pretty255 ] = formatParam(255, {
+    fill: '',
+    align: '<',
+    force_sign: '+',
+    pretty: true,
+    pad_zeroes: true,
+    width: 9,
+    precision: 0,
+    type: "X"
+});
+
+// pretty255 == '+0x0000FF'
 ```
 
 ## Older versions of RSFormat
