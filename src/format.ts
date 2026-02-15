@@ -93,7 +93,7 @@ export function buildString(strings: TemplateStringsArray, params: any[]) {
             let width_substring_start = idx++;
             while (is_digit(string[idx])) idx++;
             width = Number(string.substring(width_substring_start, idx));
-        } else if (idx == string.length) {
+        } else if (idx == string.length && i < params.length) {
             // Grab the next parameter and fuse the string with the next one
             width = params[i];
             if (typeof width != 'number') throw error(i - 1, idx, `Expected a number or number parameter for width specifier (found ${string[idx] ? "'" + string[idx] + "'" : typeof width + ' parameter'}).\nIf the next parameter was not meant to be a width number, add a : to the end of the formatting specifier.`);
@@ -104,7 +104,7 @@ export function buildString(strings: TemplateStringsArray, params: any[]) {
             if (!is_digit(string[++idx])) {
                 // Grab the next parameter and fuse the string with the next one
                 precision = params[i];
-                if (typeof precision != 'number') throw error(i - 1, idx, `Expected a number or number parameter for precision specifier after . (found ${string[idx] ? "'" + string[idx] + "'" : typeof width + ' parameter'}).\nIf the next parameter was not meant to be a precision number, add a : to the end of the formatting specifier.`);
+                if (typeof precision != 'number') throw error(i - 1, idx, `Expected a number or number parameter for precision specifier after . (found ${string[idx] ? "'" + string[idx] + "'" : typeof precision + ' parameter'}).\nIf the next parameter was not meant to be a precision number, add a : to the end of the formatting specifier.`);
                 string += strings[++i];
             } else {
                 let precision_substring_start = idx;
@@ -236,7 +236,7 @@ export function formatParam(param: any, format: FormatSpecifier): [string, strin
     };
 
     if (param_type == 'string' && format.force_sign != '') {
-        param = format.force_sign == '+' ? param.toUpperCase() : param.toLowercase();
+        param = format.force_sign == '+' ? param.toUpperCase() : param.toLowerCase();
     }
 
     // Compute radix-point precision on numbers
