@@ -310,3 +310,6 @@ export function formatParam(param: any, format: FormatSpecifier): [string, strin
 
     return [param_colored, param];
 }
+
+/** Re-export of node's `util.styleText`. */
+export const style = util.styleText;

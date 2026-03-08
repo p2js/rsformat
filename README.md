@@ -17,13 +17,14 @@ println(rs`${'a'}:^5`);
 - [Motivation](#motivation)
 - [Usage](#usage)
     - [Basic formatting and printing to console](#basic-formatting-and-printing-to-console)
+    - [Decorating terminal output](#decorating-terminal-output)
     - [Format specifiers](#format-specifiers)
         - [Different formatting types](#different-formatting-types)
         - [Padding, Alignment](#padding-alignment)
         - [Pretty printing with `#`](#pretty-printing-with-)
         - [Specific number formatting](#specific-number-formatting)
         - [Specific string formatting](#specific-string-formatting)
-    - [Formatting without `rs`](#formatting-strings-without-rs)
+    - [Formatting without `rs`](#formatting-without-rs)
 - [Older versions of RSFormat](#older-versions-of-rsformat)
 
 ## Motivation
@@ -66,6 +67,19 @@ println('Hello World');
 println(`This template did ${'Not'} need fancy formatting`);
 println(rs`...`);
 ```
+
+### Decorating terminal output
+
+If you want to decorate text for terminal output, you can use `rs.style`, which will format a string using one (or more with an array) of [the modifiers provided by node's `util` module](https://nodejs.org/docs/latest-v22.x/api/util.html#modifiers).
+
+This is a re-export of node's `util.styleText`, and is thus aware of whether the current stdout will support the provided styles.
+
+```ts
+println(rs.style("red", "I am angry"));
+println(rs.style(["red", "bold", "underline"], "I am very angry"));
+```
+
+This also works if passed inside `rs` tagged templates.
 
 ### Format Specifiers
 
@@ -161,7 +175,7 @@ rs`${1}:+` // '+1'
 rs`${1}:-` // ' 1'
 ```
 
-#### String formatting
+#### Specific string formatting
 
 Adding a `+` or `-` to a formatting specifier of a string will instead convert it to uppercase or lowercase respectively.
 
