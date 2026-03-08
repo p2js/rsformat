@@ -293,11 +293,12 @@ export function formatParam(param: any, format: FormatSpecifier): [string, strin
     }
 
     if (param_colored == "") param_colored = param_raw;
-    if (format.width > param_raw.length) {
+    let visible_length = [...param_raw].length;
+    if (format.width > visible_length) {
         // Compute fill/align
         let left = '';
         let right = '';
-        let diff = format.width - param_raw.length;
+        let diff = format.width - visible_length;
 
         switch (format.align) {
             case '>': left = format.fill.repeat(diff); break;
@@ -335,7 +336,7 @@ function roundInBase(n: any, base: number, precision: number) {
     }
 
     const factor = base ** precision;
-    const rounded = typeof n == "bigint" ? n * BigInt(factor) : Math.round(n * factor);
+    const rounded = typeof n == "bigint" ? n * BigInt(factor) : Math.round((n + Number.EPSILON) * factor);
     const str = rounded.toString(base);
 
     // Insert radix point from the right
