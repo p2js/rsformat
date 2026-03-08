@@ -163,7 +163,7 @@ rs`${15}:#07x` // '0x0000f'
 Decimal precision can be specified for numbers by adding a `.` and specifying an integer for precision. An additional parameter can also be provided to do this dynamically.
 
 ```js
-rs`${1.23456789}:.3` // '1.234'
+rs`${1.23456789}:.3` // '1.235'
 rs`${-1}:.${3}`      // '-1.000'
 ```
 

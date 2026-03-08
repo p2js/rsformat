@@ -189,7 +189,7 @@ describe("README.md examples", () => {
 
     test("zero padding and precision examples", () => {
         expect(rs.raw`${15}:#07x`).toBe('0x0000f');
-        expect(rs.raw`${1.23456789}:.2`).toBe('1.23');
+        expect(rs.raw`${1.23456789}:.3`).toBe('1.235');
         expect(rs.raw`${-1}:.${3}`).toBe('-1.000');
     });
 
