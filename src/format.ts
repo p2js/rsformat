@@ -1,4 +1,4 @@
-import util from 'node:util';
+import util, { isFunction } from 'node:util';
 
 const is_digit = (c: string) => c >= '0' && c <= '9';
 const error = (param: number, char: number, reason: string) => new Error(`rs[param ${param}, char ${char}] ${reason}`);
@@ -246,11 +246,7 @@ export function formatParam(param: any, format: FormatSpecifier): [string, strin
             // format.force_sign = '';
             break;
         default:
-            if (param_type == "number") {
-                param_raw = roundInBase(param, base, format.precision);
-            } else {
-                param_raw = param.toString();
-            }
+            param_raw = roundInBase(param, base, format.precision);
             break;
     };
 
@@ -321,17 +317,25 @@ export function formatParam(param: any, format: FormatSpecifier): [string, strin
 
 /**
  * Helper function to round a number to a given precision in a given base.
+ * Will also truncate strings to the desired length.
  */
-function roundInBase(n: number, base: number, precision: number) {
+function roundInBase(n: any, base: number, precision: number) {
+    if (typeof n == "string") {
+        if (precision == -1) return n;
+        return n.slice(0, precision);
+    }
+    if (typeof n != "number" && typeof n != "bigint") {
+        return n.toString();
+    }
     if (precision < 0) {
         return n.toString(base);
     }
     if (precision == 0) {
-        return Math.round(n).toString(base);
+        return (typeof n == "bigint" ? n : Math.round(n)).toString(base);
     }
 
     const factor = base ** precision;
-    const rounded = Math.round(n * factor);
+    const rounded = typeof n == "bigint" ? n * BigInt(factor) : Math.round(n * factor);
     const str = rounded.toString(base);
 
     // Insert radix point from the right

@@ -185,6 +185,13 @@ let str_upper = rs`${str}:+` // 'HELLO!'
 let str_lower = rs`${str}:-` // 'hello!'
 ```
 
+Specifying precision will truncate the string to the given length.
+
+```js
+let str  = "Hello!"
+let str_truncated = rs`${str}:.3` // 'Hel'
+```
+
 ## Formatting without `rs`
 
 If you want to format a single value without using an `rs` template, you can use the `formatParam` function. It provides a more explicit, object‑based API and avoids parsing format specifiers.

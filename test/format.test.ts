@@ -202,6 +202,7 @@ describe("README.md examples", () => {
         let str = "Hello!";
         expect(rs.raw`${str}:+`).toBe('HELLO!');
         expect(rs.raw`${str}:-`).toBe('hello!');
+        expect(rs.raw`${str}:.3`).toBe('Hel');
     });
 
     test("formatParam example", () => {

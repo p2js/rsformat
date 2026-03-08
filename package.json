@@ -1,6 +1,6 @@
 {
   "name": "rsformat",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Formatting/printing library for JavaScript that takes after rust's string formatting ",
   "files": [
     "lib",
